@@ -10,6 +10,8 @@ class CategoryController extends Controller
 {
 
 
+    private $path;
+
     public function index()
     {
         $categories = Category::orderBy('created_at', 'desc')->paginate();
@@ -66,14 +68,16 @@ class CategoryController extends Controller
 
         $category->name = $request->name;
         $oldPath = $category->image;
-        $path = $request->file('image')->store('categories_images');
+
+
 
         if ($request->file('image')){
 
             $request->validate([
                 'image' => 'image|mimes:jpeg,png,jpg,bmp',
             ]);
-            $category->image = $path;
+            $this->path = $request->file('image')->store('categories_images');
+            $category->image = $this->path;
 
             //remove the old image
             Storage::delete($oldPath);
@@ -83,7 +87,7 @@ class CategoryController extends Controller
             return response()->json($category,200);
 
         } else {
-            Storage::delete($path);
+            Storage::delete($this->path);
             return response()->json([
                 'message' => 'Some error occurred, please try again',
                 'status_code' => 500,
