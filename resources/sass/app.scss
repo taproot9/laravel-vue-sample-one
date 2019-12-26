@@ -1,0 +1,38 @@
+// Fonts
+@import url('https://fonts.googleapis.com/css?family=Nunito');
+
+// Variables
+@import 'variables';
+
+// Bootstrap
+@import '~bootstrap/scss/bootstrap';
+
+@import "../startbootstrap-sb-admin-gh-pages/startbootstrap-sb-admin-gh-pages/vendor/fontawesome-free/css/all.min.css";
+@import "../startbootstrap-sb-admin-gh-pages/startbootstrap-sb-admin-gh-pages/vendor/datatables/dataTables.bootstrap4.css";
+//@import "../startbootstrap-sb-admin-gh-pages/startbootstrap-sb-admin-gh-pages/css/dataTables.bootstrap4.css";
+@import "../startbootstrap-sb-admin-gh-pages/startbootstrap-sb-admin-gh-pages/css/sb-admin.css";
+
+
+/*my additional css*/
+a.nav-link.router-link-exact-active.active {
+    color: white !important;
+    background-color: #1b1e21;
+}
+
+.modal-backdrop {
+    background-color: rgba(0,0,0,0.5);
+}
+
+.w-150px{
+    width: 150px;
+}
+
+.invalid-feedback {
+    display: inline-block;
+}
+
+img.table-image {
+    width: 100px;
+    height: 100px;
+}
+
