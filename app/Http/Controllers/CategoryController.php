@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Storage;
 class CategoryController extends Controller
 {
 
+
     public function index()
     {
         $categories = Category::orderBy('created_at', 'desc')->paginate();
@@ -38,7 +39,7 @@ class CategoryController extends Controller
             return response()->json([
                 'message' => 'Some error occurred, please try again',
                 'status_code' => 500,
-            ],500);
+            ], 500);
         }
         //session
 //         return redirect('dashboard')->with('status', 'Profile updated!');
@@ -59,9 +60,37 @@ class CategoryController extends Controller
 
     public function update(Request $request, Category $category)
     {
-        //
-    }
+        $request->validate([
+            'name' => 'required|min:3',
+        ]);
 
+        $category->name = $request->name;
+        $oldPath = $category->image;
+        $path = $request->file('image')->store('categories_images');
+
+        if ($request->file('image')){
+
+            $request->validate([
+                'image' => 'image|mimes:jpeg,png,jpg,bmp',
+            ]);
+            $category->image = $path;
+
+            //remove the old image
+            Storage::delete($oldPath);
+        }
+
+        if ($category->save()) {
+            return response()->json($category,200);
+
+        } else {
+            Storage::delete($path);
+            return response()->json([
+                'message' => 'Some error occurred, please try again',
+                'status_code' => 500,
+            ], 500);
+        }
+
+    }
 
     public function destroy(Category $category)
     {

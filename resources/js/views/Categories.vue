@@ -36,7 +36,8 @@
                                  :alt="category.name">
                         </td>
                         <td>
-                            <button class="btn btn-primary btn-sm"><span class="fa fa-edit"/></button>
+                            <button @click="editCategoryModal(category)" class="btn btn-primary btn-sm"><span
+                                class="fa fa-edit"/></button>
                             <button @click="deleteCategory(category)" class="btn btn-danger btn-sm"><span
                                 class="fa fa-trash"/></button>
                         </td>
@@ -62,7 +63,7 @@
                     </div>
                     <div class="form-group">
                         <label for="image">Choose an image</label>
-                        <div v-if="categoryData.image.name">
+                        <div v-if="categoryData.image">
                             <img src="" ref="newCategoryImageDisplay" class="w-150px">
                         </div>
                         <input type="file"
@@ -78,6 +79,43 @@
                     <div class="text-right">
                         <button type="button" class="btn btn-default" v-on:click="hideNewCategoryModal">Cancel</button>
                         <button type="submit" class="btn btn-primary"><span class="fa fa-check"/>Save</button>
+                    </div>
+                </form>
+            </div>
+        </b-modal>
+
+        <!--Edit Category Model-->
+        <b-modal ref="editCategoryModal" hide-footer title="Update Category">
+            <div class="d-block">
+                <form v-on:submit.prevent="updateCategory" action="">
+                    <div class="form-group">
+                        <label for="edit_name">Enter Name</label>
+                        <input type="text"
+                               v-model="editCategoryData.name"
+                               class="form-control"
+                               id="edit_name"
+                               placeholder="Enter Category Name...">
+                        <div class="invalid-feedback" v-if="errors.name">
+                            {{errors.name[0]}}
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit_image">Choose an image</label>
+                        <div>
+                            <img :src="`${$store.state.serverPath}/storage/${editCategoryData.image}`"
+                                 ref="editCategoryImageDisplay" class="w-150px" alt="">
+                        </div>
+                        <input type="file"
+                               ref="editCategoryImage"
+                               v-on:change="editAttachImage"
+                               class="form-control"
+                               id="edit_image">
+                        <div class="invalid-feedback" v-if="errors.image">{{errors.image[0]}}</div>
+                    </div>
+                    <hr>
+                    <div class="text-right">
+                        <button type="button" class="btn btn-default" v-on:click="hideEditCategoryModal">Cancel</button>
+                        <button type="submit" class="btn btn-primary"><span class="fa fa-check"/>Update</button>
                     </div>
                 </form>
             </div>
@@ -99,12 +137,14 @@
                 },
                 errors: {},
                 categories: [],
+                editCategoryData: {},
             }
         },
         mounted() {
             this.loadCategories();
         },
         methods: {
+
             deleteCategory: async function (category) {
                 if (!window.confirm(`Are you sure want to delete ${category.name}`)) {
                     return;
@@ -112,7 +152,7 @@
                 try {
                     const response = await categoryService.deleteCategory(category.id);
 
-                    this.categories = this.categories.filter(obj=>{
+                    this.categories = this.categories.filter(obj => {
                         return obj.id !== category.id;
                     });
 
@@ -149,6 +189,52 @@
                     this.$refs.newCategoryImageDisplay.src = reader.result;
                 }.bind(this), false);
                 reader.readAsDataURL(this.categoryData.image);
+            },
+            editAttachImage() {
+                this.editCategoryData.image = this.$refs.editCategoryImage.files[0];
+                let reader = new FileReader();
+                reader.addEventListener('load', function () {
+                    this.$refs.editCategoryImageDisplay.src = reader.result;
+                }.bind(this), false);
+
+                reader.readAsDataURL(this.editCategoryData.image);
+            },
+            updateCategory: async function () {
+                let formData = new FormData();
+                formData.append('name', this.editCategoryData.name);
+                formData.append('image', this.editCategoryData.image);
+                formData.append('_method', 'put');
+                try {
+                    const response = await categoryService.updateCategory(formData, this.editCategoryData.id);
+
+                    //done update and then map
+                    this.categories.map(category => {
+                        if (category.id == response.data.id) {
+                            for (let key in response.data) {
+                                category[key] = response.data[key];
+                            }
+                        }
+                    });
+
+                    this.hideEditCategoryModal();
+
+                    this.flashMessage.success({
+                        message: 'Update Success',
+                        time: 5000,
+                    });
+                    //
+                    // this.editCategoryData = {
+                    //     name: '',
+                    //     image: '',
+                    // };
+
+                } catch (e) {
+                    this.flashMessage.error({
+                        message: e.response.data.message,
+                        time: 5000,
+                    });
+                }
+
             },
             createCategory: async function () {
                 let formData = new FormData();
@@ -210,11 +296,20 @@
             hideNewCategoryModal() {
                 this.$refs['newCategoryModal'].hide();
             },
+            hideEditCategoryModal() {
+                this.$refs['editCategoryModal'].hide();
+            },
             showNewCategoryModal() {
                 this.$refs['newCategoryModal'].show();
-            }
+            },
+            editCategoryModal: function (category) {
+                this.editCategoryData = {...category};
+                this.showEditCategoryModal();
+            },
+            showEditCategoryModal() {
+                this.$refs['editCategoryModal'].show();
+            },
         }
-
     }
 </script>
 
