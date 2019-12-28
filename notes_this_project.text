@@ -1,0 +1,52 @@
+create new laravel proj   //laravel-vue-sample-one
+npm install
+//use this https://laravel.com/docs/6.x/frontend
+composer require laravel/ui --dev
+php artisan ui bootstrap
+php artisan ui vue
+npm install
+
+//php artisan config:clear
+php artisan serve
+php artisan migrate:fresh
+
+
+//install vuex  https://vuex.vuejs.org/installation.html
+npm install vuex --save
+
+//bootstrap vue https://bootstrap-vue.js.org/
+# With npm
+//npm i bootstrap-vue ato gamiton kay naa naman tay vue og bootstrap //npm install vue bootstrap-vue bootstrap
+npm i bootstrap-vue
+
+
+//laravel storage get files, like jpg, jpeg etc.
+php artisan storage:link
+change the filesystems.php =
+		to
+        'local' => [
+            'driver' => 'local',
+            'root' => storage_path('app/public'),
+        ],
+
+$path = $request->file('avatar')->store('avatars');
+
+//vue flash
+//https://www.npmjs.com/package/@smartweb/vue-flash-message
+npm i @smartweb/vue-flash-message
+
+
+
+https://www.youtube.com/watch?v=tj_fTMx8OoA&list=PLR3-1he9bGShZT1FUMnVogdYNLbcK_Vp3&index=11
+//laravel passport
+https://laravel.com/docs/6.x/passport
+composer require laravel/passport
+php artisan migrate
+
+php artisan make:seeder AdminSeeder
+
+php artisan migrate:refresh --seed
+php artisan passport:install
+
+
+
