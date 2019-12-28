@@ -14,7 +14,7 @@ class CategoryController extends Controller
 
     public function index()
     {
-        $categories = Category::orderBy('created_at', 'desc')->paginate();
+        $categories = Category::orderBy('created_at', 'desc')->paginate(5);
         return response()->json($categories, 200);
     }
 
@@ -71,7 +71,7 @@ class CategoryController extends Controller
 
 
 
-        if ($request->file('image')){
+        if ($request->hasFile('image')){
 
             $request->validate([
                 'image' => 'image|mimes:jpeg,png,jpg,bmp',

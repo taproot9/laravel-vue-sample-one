@@ -26,6 +26,10 @@ try {
     require('../startbootstrap-sb-admin-gh-pages/startbootstrap-sb-admin-gh-pages/js/demo/datatables-demo');
     require('../startbootstrap-sb-admin-gh-pages/startbootstrap-sb-admin-gh-pages/js/demo/chart-area-demo');
 
+    require('../bootbox/bootbox.min')
+    require('../bootbox/bootbox.all.min')
+    require('../bootbox/bootbox.locales.min')
+
 
 } catch (e) {
 }

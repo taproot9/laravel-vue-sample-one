@@ -23,8 +23,19 @@ import BootstrapVue from "bootstrap-vue";
 import FlashMessage from '@smartweb/vue-flash-message';
 import store from "./store";
 
+import VuejsDialog from 'vuejs-dialog';
+import VuejsDialogMixin from 'vuejs-dialog/dist/vuejs-dialog-mixin.min.js'; // only needed in custom components
+
+// include the default style
+import 'vuejs-dialog/dist/vuejs-dialog.min.css';
+
+
+
 Vue.use(BootstrapVue);
 Vue.use(FlashMessage);
+
+// Tell Vue to install the plugin.
+Vue.use(VuejsDialog);
 Vue.component('app-component', require('./App.vue').default);
 
 /**

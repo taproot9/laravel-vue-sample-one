@@ -3,7 +3,7 @@
         <!-- Breadcrumbs-->
         <ol class="breadcrumb">
             <li class="breadcrumb-item">
-                <router-link to="/">Dashboard</router-link>
+                <router-link to="/home">Dashboard</router-link>
             </li>
             <li class="breadcrumb-item active">Overview</li>
         </ol>

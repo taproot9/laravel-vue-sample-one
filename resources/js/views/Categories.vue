@@ -2,7 +2,7 @@
     <div class="container-fluid">
         <ol class="breadcrumb">
             <li class="breadcrumb-item active">
-                <router-link to="/">Categories</router-link>
+                <router-link to="/categories">Categories</router-link>
             </li>
             <li class="breadcrumb-item">Overview</li>
         </ol>
@@ -44,6 +44,10 @@
                     </tr>
                     </tbody>
                 </table>
+                <div class="text-center" v-show="moreExists">
+                    <button class="btn btn-primary btn-sm" @click="loadMore"><span class="fa fa-arrow-down"/>Load More
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -138,17 +142,19 @@
                 errors: {},
                 categories: [],
                 editCategoryData: {},
+                moreExists: false,
+                nextPage: 0,
             }
         },
         mounted() {
             this.loadCategories();
         },
         methods: {
-
             deleteCategory: async function (category) {
                 if (!window.confirm(`Are you sure want to delete ${category.name}`)) {
                     return;
                 }
+
                 try {
                     const response = await categoryService.deleteCategory(category.id);
 
@@ -174,6 +180,13 @@
                 try {
                     const response = await categoryService.loadCategories();
                     this.categories = response.data.data;
+
+                    if (response.data.current_page < response.data.last_page) {
+                        this.moreExists = true;
+                        this.nextPage = response.data.current_page + 1;
+                    } else {
+                        this.moreExists = false;
+                    }
                 } catch (e) {
                     this.flashMessage.error({
                         title: 'Error',
@@ -308,6 +321,26 @@
             },
             showEditCategoryModal() {
                 this.$refs['editCategoryModal'].show();
+            },
+            loadMore: async function () {
+                try {
+                    const response = await categoryService.loadMore(this.nextPage);
+                    if (response.data.current_page < response.data.last_page) {
+                        this.moreExists = true;
+                        this.nextPage = response.data.current_page + 1;
+                    } else {
+                        this.moreExists = false;
+                    }
+                    response.data.data.forEach(data => {
+                        this.categories.push(data);
+                    });
+                } catch (e) {
+                    this.flashMessage.error({
+                        title: 'Error',
+                        message: 'Some error occurred during loading more category!',
+                        time: 5000,
+                    })
+                }
             },
         }
     }

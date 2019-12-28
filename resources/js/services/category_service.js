@@ -1,5 +1,9 @@
 import {http, httpFile} from "./http_service";
 
+export async function loadMore(nextPage) {
+    return http().get(`/categories?page=${nextPage}`);
+}
+
 export function createCategory(data) {
     return httpFile().post('/categories', data)
 }

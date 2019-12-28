@@ -1,6 +1,50 @@
 /******/ (function(modules) { // webpackBootstrap
+/******/ 	// install a JSONP callback for chunk loading
+/******/ 	function webpackJsonpCallback(data) {
+/******/ 		var chunkIds = data[0];
+/******/ 		var moreModules = data[1];
+/******/
+/******/
+/******/ 		// add "moreModules" to the modules object,
+/******/ 		// then flag all "chunkIds" as loaded and fire callback
+/******/ 		var moduleId, chunkId, i = 0, resolves = [];
+/******/ 		for(;i < chunkIds.length; i++) {
+/******/ 			chunkId = chunkIds[i];
+/******/ 			if(Object.prototype.hasOwnProperty.call(installedChunks, chunkId) && installedChunks[chunkId]) {
+/******/ 				resolves.push(installedChunks[chunkId][0]);
+/******/ 			}
+/******/ 			installedChunks[chunkId] = 0;
+/******/ 		}
+/******/ 		for(moduleId in moreModules) {
+/******/ 			if(Object.prototype.hasOwnProperty.call(moreModules, moduleId)) {
+/******/ 				modules[moduleId] = moreModules[moduleId];
+/******/ 			}
+/******/ 		}
+/******/ 		if(parentJsonpFunction) parentJsonpFunction(data);
+/******/
+/******/ 		while(resolves.length) {
+/******/ 			resolves.shift()();
+/******/ 		}
+/******/
+/******/ 	};
+/******/
+/******/
 /******/ 	// The module cache
 /******/ 	var installedModules = {};
+/******/
+/******/ 	// object to store loaded and loading chunks
+/******/ 	// undefined = chunk not loaded, null = chunk preloaded/prefetched
+/******/ 	// Promise = chunk loading, 0 = chunk loaded
+/******/ 	var installedChunks = {
+/******/ 		"/js/app": 0
+/******/ 	};
+/******/
+/******/
+/******/
+/******/ 	// script path function
+/******/ 	function jsonpScriptSrc(chunkId) {
+/******/ 		return __webpack_require__.p + "" + ({"categories":"categories"}[chunkId]||chunkId) + ".js"
+/******/ 	}
 /******/
 /******/ 	// The require function
 /******/ 	function __webpack_require__(moduleId) {
@@ -26,6 +70,67 @@
 /******/ 		return module.exports;
 /******/ 	}
 /******/
+/******/ 	// This file contains only the entry chunk.
+/******/ 	// The chunk loading function for additional chunks
+/******/ 	__webpack_require__.e = function requireEnsure(chunkId) {
+/******/ 		var promises = [];
+/******/
+/******/
+/******/ 		// JSONP chunk loading for javascript
+/******/
+/******/ 		var installedChunkData = installedChunks[chunkId];
+/******/ 		if(installedChunkData !== 0) { // 0 means "already installed".
+/******/
+/******/ 			// a Promise means "currently loading".
+/******/ 			if(installedChunkData) {
+/******/ 				promises.push(installedChunkData[2]);
+/******/ 			} else {
+/******/ 				// setup Promise in chunk cache
+/******/ 				var promise = new Promise(function(resolve, reject) {
+/******/ 					installedChunkData = installedChunks[chunkId] = [resolve, reject];
+/******/ 				});
+/******/ 				promises.push(installedChunkData[2] = promise);
+/******/
+/******/ 				// start chunk loading
+/******/ 				var script = document.createElement('script');
+/******/ 				var onScriptComplete;
+/******/
+/******/ 				script.charset = 'utf-8';
+/******/ 				script.timeout = 120;
+/******/ 				if (__webpack_require__.nc) {
+/******/ 					script.setAttribute("nonce", __webpack_require__.nc);
+/******/ 				}
+/******/ 				script.src = jsonpScriptSrc(chunkId);
+/******/
+/******/ 				// create error before stack unwound to get useful stacktrace later
+/******/ 				var error = new Error();
+/******/ 				onScriptComplete = function (event) {
+/******/ 					// avoid mem leaks in IE.
+/******/ 					script.onerror = script.onload = null;
+/******/ 					clearTimeout(timeout);
+/******/ 					var chunk = installedChunks[chunkId];
+/******/ 					if(chunk !== 0) {
+/******/ 						if(chunk) {
+/******/ 							var errorType = event && (event.type === 'load' ? 'missing' : event.type);
+/******/ 							var realSrc = event && event.target && event.target.src;
+/******/ 							error.message = 'Loading chunk ' + chunkId + ' failed.\n(' + errorType + ': ' + realSrc + ')';
+/******/ 							error.name = 'ChunkLoadError';
+/******/ 							error.type = errorType;
+/******/ 							error.request = realSrc;
+/******/ 							chunk[1](error);
+/******/ 						}
+/******/ 						installedChunks[chunkId] = undefined;
+/******/ 					}
+/******/ 				};
+/******/ 				var timeout = setTimeout(function(){
+/******/ 					onScriptComplete({ type: 'timeout', target: script });
+/******/ 				}, 120000);
+/******/ 				script.onerror = script.onload = onScriptComplete;
+/******/ 				document.head.appendChild(script);
+/******/ 			}
+/******/ 		}
+/******/ 		return Promise.all(promises);
+/******/ 	};
 /******/
 /******/ 	// expose the modules object (__webpack_modules__)
 /******/ 	__webpack_require__.m = modules;
@@ -79,24 +184,22 @@
 /******/ 	// __webpack_public_path__
 /******/ 	__webpack_require__.p = "/";
 /******/
+/******/ 	// on error function for async loading
+/******/ 	__webpack_require__.oe = function(err) { console.error(err); throw err; };
+/******/
+/******/ 	var jsonpArray = window["webpackJsonp"] = window["webpackJsonp"] || [];
+/******/ 	var oldJsonpFunction = jsonpArray.push.bind(jsonpArray);
+/******/ 	jsonpArray.push = webpackJsonpCallback;
+/******/ 	jsonpArray = jsonpArray.slice();
+/******/ 	for(var i = 0; i < jsonpArray.length; i++) webpackJsonpCallback(jsonpArray[i]);
+/******/ 	var parentJsonpFunction = oldJsonpFunction;
+/******/
 /******/
 /******/ 	// Load entry module and return exports
 /******/ 	return __webpack_require__(__webpack_require__.s = 0);
 /******/ })
 /************************************************************************/
 /******/ ({
-
-/***/ "./node_modules/@babel/runtime/regenerator/index.js":
-/*!**********************************************************!*\
-  !*** ./node_modules/@babel/runtime/regenerator/index.js ***!
-  \**********************************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-module.exports = __webpack_require__(/*! regenerator-runtime */ "./node_modules/regenerator-runtime/runtime.js");
-
-
-/***/ }),
 
 /***/ "./node_modules/@smartweb/vue-flash-message/build/vue-flash-msg.common.js":
 /*!********************************************************************************!*\
@@ -1861,11 +1964,6 @@ module.exports = {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _components_Header__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./components/Header */ "./resources/js/components/Header.vue");
-/* harmony import */ var _components_Sidebar__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./components/Sidebar */ "./resources/js/components/Sidebar.vue");
-/* harmony import */ var _components_Footer__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./components/Footer */ "./resources/js/components/Footer.vue");
-/* harmony import */ var _views_Welcome__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./views/Welcome */ "./resources/js/views/Welcome.vue");
-/* harmony import */ var _views_Categories__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./views/Categories */ "./resources/js/views/Categories.vue");
 //
 //
 //
@@ -1873,28 +1971,7 @@ __webpack_require__.r(__webpack_exports__);
 //
 //
 //
-//
-//
-//
-//
-//
-//
-
-
-
-
-
 /* harmony default export */ __webpack_exports__["default"] = ({
-  components: {
-    Category: _views_Categories__WEBPACK_IMPORTED_MODULE_4__["default"],
-    Welcome: _views_Welcome__WEBPACK_IMPORTED_MODULE_3__["default"],
-    Footer: _components_Footer__WEBPACK_IMPORTED_MODULE_2__["default"],
-    Sidebar: _components_Sidebar__WEBPACK_IMPORTED_MODULE_1__["default"],
-    Header: _components_Header__WEBPACK_IMPORTED_MODULE_0__["default"]
-  },
-  mounted: function mounted() {
-    console.log('Component mounted.');
-  },
   name: 'App'
 });
 
@@ -2004,6 +2081,8 @@ __webpack_require__.r(__webpack_exports__);
 //
 //
 //
+//
+//
 /* harmony default export */ __webpack_exports__["default"] = ({
   name: "Header"
 });
@@ -2043,546 +2122,1476 @@ __webpack_require__.r(__webpack_exports__);
 
 /***/ }),
 
-/***/ "./node_modules/babel-loader/lib/index.js?!./node_modules/vue-loader/lib/index.js?!./resources/js/views/Categories.vue?vue&type=script&lang=js&":
-/*!****************************************************************************************************************************************************************!*\
-  !*** ./node_modules/babel-loader/lib??ref--4-0!./node_modules/vue-loader/lib??vue-loader-options!./resources/js/views/Categories.vue?vue&type=script&lang=js& ***!
-  \****************************************************************************************************************************************************************/
+/***/ "./node_modules/babel-loader/lib/index.js?!./node_modules/vue-loader/lib/index.js?!./resources/js/views/Home.vue?vue&type=script&lang=js&":
+/*!**********************************************************************************************************************************************************!*\
+  !*** ./node_modules/babel-loader/lib??ref--4-0!./node_modules/vue-loader/lib??vue-loader-options!./resources/js/views/Home.vue?vue&type=script&lang=js& ***!
+  \**********************************************************************************************************************************************************/
 /*! exports provided: default */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @babel/runtime/regenerator */ "./node_modules/@babel/runtime/regenerator/index.js");
-/* harmony import */ var _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var _services_category_service__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../services/category_service */ "./resources/js/services/category_service.js");
+/* harmony import */ var _components_Header__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../components/Header */ "./resources/js/components/Header.vue");
+/* harmony import */ var _components_Sidebar__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../components/Sidebar */ "./resources/js/components/Sidebar.vue");
+/* harmony import */ var _components_Footer__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../components/Footer */ "./resources/js/components/Footer.vue");
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
 
 
-function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
-
-function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
-
-function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
-
-function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
-
-function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
-
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
 
 /* harmony default export */ __webpack_exports__["default"] = ({
-  name: "category",
-  data: function data() {
-    return {
-      categoryData: {
-        name: '',
-        image: ''
-      },
-      errors: {},
-      categories: [],
-      editCategoryData: {}
-    };
-  },
-  mounted: function mounted() {
-    this.loadCategories();
-  },
-  methods: {
-    deleteCategory: function () {
-      var _deleteCategory = _asyncToGenerator(
-      /*#__PURE__*/
-      _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default.a.mark(function _callee(category) {
-        var response;
-        return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default.a.wrap(function _callee$(_context) {
-          while (1) {
-            switch (_context.prev = _context.next) {
-              case 0:
-                if (window.confirm("Are you sure want to delete ".concat(category.name))) {
-                  _context.next = 2;
-                  break;
-                }
-
-                return _context.abrupt("return");
-
-              case 2:
-                _context.prev = 2;
-                _context.next = 5;
-                return _services_category_service__WEBPACK_IMPORTED_MODULE_1__["deleteCategory"](category.id);
-
-              case 5:
-                response = _context.sent;
-                this.categories = this.categories.filter(function (obj) {
-                  return obj.id !== category.id;
-                });
-                this.flashMessage.success({
-                  title: 'Success Delete',
-                  message: response.data.message,
-                  time: 5000
-                });
-                _context.next = 13;
-                break;
-
-              case 10:
-                _context.prev = 10;
-                _context.t0 = _context["catch"](2);
-                this.flashMessage.error({
-                  title: 'Error',
-                  message: _context.t0.response.data.message,
-                  time: 5000
-                });
-
-              case 13:
-              case "end":
-                return _context.stop();
-            }
-          }
-        }, _callee, this, [[2, 10]]);
-      }));
-
-      function deleteCategory(_x) {
-        return _deleteCategory.apply(this, arguments);
-      }
-
-      return deleteCategory;
-    }(),
-    loadCategories: function () {
-      var _loadCategories = _asyncToGenerator(
-      /*#__PURE__*/
-      _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default.a.mark(function _callee2() {
-        var response;
-        return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default.a.wrap(function _callee2$(_context2) {
-          while (1) {
-            switch (_context2.prev = _context2.next) {
-              case 0:
-                _context2.prev = 0;
-                _context2.next = 3;
-                return _services_category_service__WEBPACK_IMPORTED_MODULE_1__["loadCategories"]();
-
-              case 3:
-                response = _context2.sent;
-                this.categories = response.data.data;
-                _context2.next = 10;
-                break;
-
-              case 7:
-                _context2.prev = 7;
-                _context2.t0 = _context2["catch"](0);
-                this.flashMessage.error({
-                  title: 'Error',
-                  message: 'Some error occured, Please refresh!',
-                  time: 5000
-                });
-
-              case 10:
-              case "end":
-                return _context2.stop();
-            }
-          }
-        }, _callee2, this, [[0, 7]]);
-      }));
-
-      function loadCategories() {
-        return _loadCategories.apply(this, arguments);
-      }
-
-      return loadCategories;
-    }(),
-    attachImage: function attachImage() {
-      this.categoryData.image = this.$refs.newCategoryImage.files[0];
-      var reader = new FileReader();
-      reader.addEventListener('load', function () {
-        this.$refs.newCategoryImageDisplay.src = reader.result;
-      }.bind(this), false);
-      reader.readAsDataURL(this.categoryData.image);
-    },
-    editAttachImage: function editAttachImage() {
-      this.editCategoryData.image = this.$refs.editCategoryImage.files[0];
-      var reader = new FileReader();
-      reader.addEventListener('load', function () {
-        this.$refs.editCategoryImageDisplay.src = reader.result;
-      }.bind(this), false);
-      reader.readAsDataURL(this.editCategoryData.image);
-    },
-    updateCategory: function () {
-      var _updateCategory = _asyncToGenerator(
-      /*#__PURE__*/
-      _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default.a.mark(function _callee3() {
-        var formData, response;
-        return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default.a.wrap(function _callee3$(_context3) {
-          while (1) {
-            switch (_context3.prev = _context3.next) {
-              case 0:
-                formData = new FormData();
-                formData.append('name', this.editCategoryData.name);
-                formData.append('image', this.editCategoryData.image);
-                formData.append('_method', 'put');
-                _context3.prev = 4;
-                _context3.next = 7;
-                return _services_category_service__WEBPACK_IMPORTED_MODULE_1__["updateCategory"](formData, this.editCategoryData.id);
-
-              case 7:
-                response = _context3.sent;
-                //done update and then map
-                this.categories.map(function (category) {
-                  if (category.id == response.data.id) {
-                    for (var key in response.data) {
-                      category[key] = response.data[key];
-                    }
-                  }
-                });
-                this.hideEditCategoryModal();
-                this.flashMessage.success({
-                  message: 'Update Success',
-                  time: 5000
-                }); //
-                // this.editCategoryData = {
-                //     name: '',
-                //     image: '',
-                // };
-
-                _context3.next = 16;
-                break;
-
-              case 13:
-                _context3.prev = 13;
-                _context3.t0 = _context3["catch"](4);
-                this.flashMessage.error({
-                  message: _context3.t0.response.data.message,
-                  time: 5000
-                });
-
-              case 16:
-              case "end":
-                return _context3.stop();
-            }
-          }
-        }, _callee3, this, [[4, 13]]);
-      }));
-
-      function updateCategory() {
-        return _updateCategory.apply(this, arguments);
-      }
-
-      return updateCategory;
-    }(),
-    createCategory: function () {
-      var _createCategory = _asyncToGenerator(
-      /*#__PURE__*/
-      _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default.a.mark(function _callee4() {
-        var formData, response;
-        return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default.a.wrap(function _callee4$(_context4) {
-          while (1) {
-            switch (_context4.prev = _context4.next) {
-              case 0:
-                formData = new FormData();
-                formData.append('name', this.categoryData.name);
-                formData.append('image', this.categoryData.image);
-                _context4.prev = 3;
-                _context4.next = 6;
-                return _services_category_service__WEBPACK_IMPORTED_MODULE_1__["createCategory"](formData);
-
-              case 6:
-                response = _context4.sent;
-                //para nig human og create mo add pud cya sa table
-                this.categories.unshift(response.data);
-                this.hideNewCategoryModal(); // this.flashMessage.error({
-                //     title: 'Error Message Title',
-                //     message: 'Oh, you broke my heart! Shame on you!'
-                // });
-                // this.flashMessage.warning({
-                //     title: 'Warning Message Title',
-                //     message: "Don't stop me nooooow....!"
-                // });
-                // this.flashMessage.info({
-                //     title: 'Info Message Title',
-                //     message: 'Just want you to know, that Vue is so cool'
-                // });
-
-                this.flashMessage.success({
-                  title: 'Success Category Added!',
-                  message: 'Category stored successfully!',
-                  time: 5000
-                });
-                this.categoryData = {
-                  name: '',
-                  image: ''
-                }; // this.loadCategories();
-
-                _context4.next = 16;
-                break;
-
-              case 13:
-                _context4.prev = 13;
-                _context4.t0 = _context4["catch"](3);
-
-                if (_context4.t0.response.status === 422 && _context4.t0.response) {
-                  // this.errors.nameErrors = e.response.data.errors.name;
-                  // this.errors.imageErrors = e.response.data.errors.image;
-                  this.errors = _context4.t0.response.data.errors; // console.log(this.errors.name[0]);
-
-                  this.flashMessage.error({
-                    title: 'Error',
-                    message: 'Some error occured, Please try again!',
-                    time: 5000
-                  });
-                } else {
-                  this.flashMessage.error({
-                    title: 'Error',
-                    message: 'Some error occured, Please try again!',
-                    time: 5000
-                  });
-                }
-
-              case 16:
-              case "end":
-                return _context4.stop();
-            }
-          }
-        }, _callee4, this, [[3, 13]]);
-      }));
-
-      function createCategory() {
-        return _createCategory.apply(this, arguments);
-      }
-
-      return createCategory;
-    }(),
-    hideNewCategoryModal: function hideNewCategoryModal() {
-      this.$refs['newCategoryModal'].hide();
-    },
-    hideEditCategoryModal: function hideEditCategoryModal() {
-      this.$refs['editCategoryModal'].hide();
-    },
-    showNewCategoryModal: function showNewCategoryModal() {
-      this.$refs['newCategoryModal'].show();
-    },
-    editCategoryModal: function editCategoryModal(category) {
-      this.editCategoryData = _objectSpread({}, category);
-      this.showEditCategoryModal();
-    },
-    showEditCategoryModal: function showEditCategoryModal() {
-      this.$refs['editCategoryModal'].show();
-    }
+  name: "Home",
+  components: {
+    Footer: _components_Footer__WEBPACK_IMPORTED_MODULE_2__["default"],
+    Sidebar: _components_Sidebar__WEBPACK_IMPORTED_MODULE_1__["default"],
+    Header: _components_Header__WEBPACK_IMPORTED_MODULE_0__["default"]
   }
 });
 
 /***/ }),
 
-/***/ "./node_modules/babel-loader/lib/index.js?!./node_modules/vue-loader/lib/index.js?!./resources/js/views/Welcome.vue?vue&type=script&lang=js&":
-/*!*************************************************************************************************************************************************************!*\
-  !*** ./node_modules/babel-loader/lib??ref--4-0!./node_modules/vue-loader/lib??vue-loader-options!./resources/js/views/Welcome.vue?vue&type=script&lang=js& ***!
-  \*************************************************************************************************************************************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ "./node_modules/bootbox/bootbox.all.js":
+/*!*********************************************!*\
+  !*** ./node_modules/bootbox/bootbox.all.js ***!
+  \*********************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
 
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-/* harmony default export */ __webpack_exports__["default"] = ({
-  name: "Welcome"
-});
+var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*! @preserve
+ * bootbox.js
+ * version: 5.4.0
+ * author: Nick Payne <nick@kurai.co.uk>
+ * license: MIT
+ * http://bootboxjs.com/
+ */
+(function (root, factory) {
+  'use strict';
+  if (true) {
+    // AMD
+    !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(/*! jquery */ "./node_modules/jquery/dist/jquery.js")], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory),
+				__WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ?
+				(__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__),
+				__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
+  } else {}
+}(this, function init($, undefined) {
+  'use strict';
+
+  //  Polyfills Object.keys, if necessary.
+  //  @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/keys
+  if (!Object.keys) {
+    Object.keys = (function () {
+      var hasOwnProperty = Object.prototype.hasOwnProperty,
+        hasDontEnumBug = !({ toString: null }).propertyIsEnumerable('toString'),
+        dontEnums = [
+          'toString',
+          'toLocaleString',
+          'valueOf',
+          'hasOwnProperty',
+          'isPrototypeOf',
+          'propertyIsEnumerable',
+          'constructor'
+        ],
+        dontEnumsLength = dontEnums.length;
+
+      return function (obj) {
+        if (typeof obj !== 'function' && (typeof obj !== 'object' || obj === null)) {
+          throw new TypeError('Object.keys called on non-object');
+        }
+
+        var result = [], prop, i;
+
+        for (prop in obj) {
+          if (hasOwnProperty.call(obj, prop)) {
+            result.push(prop);
+          }
+        }
+
+        if (hasDontEnumBug) {
+          for (i = 0; i < dontEnumsLength; i++) {
+            if (hasOwnProperty.call(obj, dontEnums[i])) {
+              result.push(dontEnums[i]);
+            }
+          }
+        }
+
+        return result;
+      };
+    }());
+  }
+
+  var exports = {};
+
+  var VERSION = '5.0.0';
+  exports.VERSION = VERSION;
+
+  var locales = {
+      ar : {
+        OK      : 'موافق',
+        CANCEL  : 'الغاء',
+        CONFIRM : 'تأكيد'
+      },
+      bg_BG : {
+        OK      : 'Ок',
+        CANCEL  : 'Отказ',
+        CONFIRM : 'Потвърждавам'
+      },
+      br : {
+        OK      : 'OK',
+        CANCEL  : 'Cancelar',
+        CONFIRM : 'Sim'
+      },
+      cs : {
+        OK      : 'OK',
+        CANCEL  : 'Zrušit',
+        CONFIRM : 'Potvrdit'
+      },
+      da : {
+        OK      : 'OK',
+        CANCEL  : 'Annuller',
+        CONFIRM : 'Accepter'
+      },
+      de : {
+        OK      : 'OK',
+        CANCEL  : 'Abbrechen',
+        CONFIRM : 'Akzeptieren'
+      },
+      el : {
+        OK      : 'Εντάξει',
+        CANCEL  : 'Ακύρωση',
+        CONFIRM : 'Επιβεβαίωση'
+      },
+      en : {
+        OK      : 'OK',
+        CANCEL  : 'Cancel',
+        CONFIRM : 'OK'
+      },
+      es : {
+        OK      : 'OK',
+        CANCEL  : 'Cancelar',
+        CONFIRM : 'Aceptar'
+      },
+      eu : {
+        OK      : 'OK',
+        CANCEL  : 'Ezeztatu',
+        CONFIRM : 'Onartu'
+      },
+      et : {
+        OK      : 'OK',
+        CANCEL  : 'Katkesta',
+        CONFIRM : 'OK'
+      },
+      fa : {
+        OK      : 'قبول',
+        CANCEL  : 'لغو',
+        CONFIRM : 'تایید'
+      },
+      fi : {
+        OK      : 'OK',
+        CANCEL  : 'Peruuta',
+        CONFIRM : 'OK'
+      },
+      fr : {
+        OK      : 'OK',
+        CANCEL  : 'Annuler',
+        CONFIRM : 'Confirmer'
+      },
+      he : {
+        OK      : 'אישור',
+        CANCEL  : 'ביטול',
+        CONFIRM : 'אישור'
+      },
+      hu : {
+        OK      : 'OK',
+        CANCEL  : 'Mégsem',
+        CONFIRM : 'Megerősít'
+      },
+      hr : {
+        OK      : 'OK',
+        CANCEL  : 'Odustani',
+        CONFIRM : 'Potvrdi'
+      },
+      id : {
+        OK      : 'OK',
+        CANCEL  : 'Batal',
+        CONFIRM : 'OK'
+      },
+      it : {
+        OK      : 'OK',
+        CANCEL  : 'Annulla',
+        CONFIRM : 'Conferma'
+      },
+      ja : {
+        OK      : 'OK',
+        CANCEL  : 'キャンセル',
+        CONFIRM : '確認'
+      },
+      ka : {
+        OK: 'OK',
+        CANCEL: 'გაუქმება',
+        CONFIRM: 'დადასტურება'
+      },
+      ko : {
+        OK: 'OK',
+        CANCEL: '취소',
+        CONFIRM: '확인'
+      },
+      lt : {
+        OK      : 'Gerai',
+        CANCEL  : 'Atšaukti',
+        CONFIRM : 'Patvirtinti'
+      },
+      lv : {
+        OK      : 'Labi',
+        CANCEL  : 'Atcelt',
+        CONFIRM : 'Apstiprināt'
+      },
+      nl : {
+        OK      : 'OK',
+        CANCEL  : 'Annuleren',
+        CONFIRM : 'Accepteren'
+      },
+      no : {
+        OK      : 'OK',
+        CANCEL  : 'Avbryt',
+        CONFIRM : 'OK'
+      },
+      pl : {
+        OK      : 'OK',
+        CANCEL  : 'Anuluj',
+        CONFIRM : 'Potwierdź'
+      },
+      pt : {
+        OK      : 'OK',
+        CANCEL  : 'Cancelar',
+        CONFIRM : 'Confirmar'
+      },
+      ru : {
+        OK      : 'OK',
+        CANCEL  : 'Отмена',
+        CONFIRM : 'Применить'
+      },
+      sk : {
+        OK      : 'OK',
+        CANCEL  : 'Zrušiť',
+        CONFIRM : 'Potvrdiť'
+      },
+      sl : {
+        OK      : 'OK',
+        CANCEL  : 'Prekliči',
+        CONFIRM : 'Potrdi'
+      },
+      sq : {
+        OK      : 'OK',
+        CANCEL  : 'Anulo',
+        CONFIRM : 'Prano'
+      },
+      sv : {
+        OK      : 'OK',
+        CANCEL  : 'Avbryt',
+        CONFIRM : 'OK'
+      },
+      sw: {
+        OK      : 'Sawa',
+        CANCEL  : 'Ghairi',
+        CONFIRM: 'Thibitisha'
+      },
+      ta:{
+        OK      : 'சரி',
+        CANCEL  : 'ரத்து செய்',
+        CONFIRM : 'உறுதி செய்'
+      },
+      th : {
+        OK      : 'ตกลง',
+        CANCEL  : 'ยกเลิก',
+        CONFIRM : 'ยืนยัน'
+      },
+      tr : {
+        OK      : 'Tamam',
+        CANCEL  : 'İptal',
+        CONFIRM : 'Onayla'
+      },
+      uk : {
+        OK      : 'OK',
+        CANCEL  : 'Відміна',
+        CONFIRM : 'Прийняти'
+      },
+      zh_CN : {
+        OK      : 'OK',
+        CANCEL  : '取消',
+        CONFIRM : '确认'
+      },
+      zh_TW : {
+        OK      : 'OK',
+        CANCEL  : '取消',
+        CONFIRM : '確認'
+      }
+  };
+
+  var templates = {
+    dialog:
+    '<div class="bootbox modal" tabindex="-1" role="dialog" aria-hidden="true">' +
+    '<div class="modal-dialog">' +
+    '<div class="modal-content">' +
+    '<div class="modal-body"><div class="bootbox-body"></div></div>' +
+    '</div>' +
+    '</div>' +
+    '</div>',
+    header:
+    '<div class="modal-header">' +
+    '<h5 class="modal-title"></h5>' +
+    '</div>',
+    footer:
+    '<div class="modal-footer"></div>',
+    closeButton:
+    '<button type="button" class="bootbox-close-button close" aria-hidden="true">&times;</button>',
+    form:
+    '<form class="bootbox-form"></form>',
+    button:
+    '<button type="button" class="btn"></button>',
+    option:
+    '<option></option>',
+    promptMessage:
+    '<div class="bootbox-prompt-message"></div>',
+    inputs: {
+      text:
+      '<input class="bootbox-input bootbox-input-text form-control" autocomplete="off" type="text" />',
+      textarea:
+      '<textarea class="bootbox-input bootbox-input-textarea form-control"></textarea>',
+      email:
+      '<input class="bootbox-input bootbox-input-email form-control" autocomplete="off" type="email" />',
+      select:
+      '<select class="bootbox-input bootbox-input-select form-control"></select>',
+      checkbox:
+      '<div class="form-check checkbox"><label class="form-check-label"><input class="form-check-input bootbox-input bootbox-input-checkbox" type="checkbox" /></label></div>',
+      radio:
+      '<div class="form-check radio"><label class="form-check-label"><input class="form-check-input bootbox-input bootbox-input-radio" type="radio" name="bootbox-radio" /></label></div>',
+      date:
+      '<input class="bootbox-input bootbox-input-date form-control" autocomplete="off" type="date" />',
+      time:
+      '<input class="bootbox-input bootbox-input-time form-control" autocomplete="off" type="time" />',
+      number:
+      '<input class="bootbox-input bootbox-input-number form-control" autocomplete="off" type="number" />',
+      password:
+      '<input class="bootbox-input bootbox-input-password form-control" autocomplete="off" type="password" />',
+      range:
+      '<input class="bootbox-input bootbox-input-range form-control-range" autocomplete="off" type="range" />'
+    }
+  };
+
+
+  var defaults = {
+    // default language
+    locale: 'en',
+    // show backdrop or not. Default to static so user has to interact with dialog
+    backdrop: 'static',
+    // animate the modal in/out
+    animate: true,
+    // additional class string applied to the top level dialog
+    className: null,
+    // whether or not to include a close button
+    closeButton: true,
+    // show the dialog immediately by default
+    show: true,
+    // dialog container
+    container: 'body',
+    // default value (used by the prompt helper)
+    value: '',
+    // default input type (used by the prompt helper)
+    inputType: 'text',
+    // switch button order from cancel/confirm (default) to confirm/cancel
+    swapButtonOrder: false,
+    // center modal vertically in page
+    centerVertical: false,
+    // Append "multiple" property to the select when using the "prompt" helper
+    multiple: false,
+    // Automatically scroll modal content when height exceeds viewport height
+    scrollable: false
+  };
+
+
+  // PUBLIC FUNCTIONS
+  // *************************************************************************************************************
+
+  // Return all currently registered locales, or a specific locale if "name" is defined
+  exports.locales = function (name) {
+    return name ? locales[name] : locales;
+  };
+
+
+  // Register localized strings for the OK, CONFIRM, and CANCEL buttons
+  exports.addLocale = function (name, values) {
+    $.each(['OK', 'CANCEL', 'CONFIRM'], function (_, v) {
+      if (!values[v]) {
+        throw new Error('Please supply a translation for "' + v + '"');
+      }
+    });
+
+    locales[name] = {
+      OK: values.OK,
+      CANCEL: values.CANCEL,
+      CONFIRM: values.CONFIRM
+    };
+
+    return exports;
+  };
+
+
+  // Remove a previously-registered locale
+  exports.removeLocale = function (name) {
+    if (name !== 'en') {
+      delete locales[name];
+    }
+    else {
+      throw new Error('"en" is used as the default and fallback locale and cannot be removed.');
+    }
+
+    return exports;
+  };
+
+
+  // Set the default locale
+  exports.setLocale = function (name) {
+    return exports.setDefaults('locale', name);
+  };
+
+
+  // Override default value(s) of Bootbox.
+  exports.setDefaults = function () {
+    var values = {};
+
+    if (arguments.length === 2) {
+      // allow passing of single key/value...
+      values[arguments[0]] = arguments[1];
+    } else {
+      // ... and as an object too
+      values = arguments[0];
+    }
+
+    $.extend(defaults, values);
+
+    return exports;
+  };
+
+
+  // Hides all currently active Bootbox modals
+  exports.hideAll = function () {
+    $('.bootbox').modal('hide');
+
+    return exports;
+  };
+
+
+  // Allows the base init() function to be overridden
+  exports.init = function (_$) {
+    return init(_$ || $);
+  };
+
+
+  // CORE HELPER FUNCTIONS
+  // *************************************************************************************************************
+
+  // Core dialog function
+  exports.dialog = function (options) {
+    if ($.fn.modal === undefined) {
+      throw new Error(
+        '"$.fn.modal" is not defined; please double check you have included ' +
+        'the Bootstrap JavaScript library. See http://getbootstrap.com/javascript/ ' +
+        'for more details.'
+      );
+    }
+
+    options = sanitize(options);
+
+    if ($.fn.modal.Constructor.VERSION) {
+      options.fullBootstrapVersion = $.fn.modal.Constructor.VERSION;
+      var i = options.fullBootstrapVersion.indexOf('.');
+      options.bootstrap = options.fullBootstrapVersion.substring(0, i);
+    }
+    else {
+      // Assuming version 2.3.2, as that was the last "supported" 2.x version
+      options.bootstrap = '2';
+      options.fullBootstrapVersion = '2.3.2';
+      console.warn('Bootbox will *mostly* work with Bootstrap 2, but we do not officially support it. Please upgrade, if possible.');
+    }
+
+    var dialog = $(templates.dialog);
+    var innerDialog = dialog.find('.modal-dialog');
+    var body = dialog.find('.modal-body');
+    var header = $(templates.header);
+    var footer = $(templates.footer);
+    var buttons = options.buttons;
+
+    var callbacks = {
+      onEscape: options.onEscape
+    };
+
+    body.find('.bootbox-body').html(options.message);
+
+    // Only attempt to create buttons if at least one has 
+    // been defined in the options object
+    if (getKeyLength(options.buttons) > 0) {
+      each(buttons, function (key, b) {
+        var button = $(templates.button);
+        button.data('bb-handler', key);
+        button.addClass(b.className);
+
+        switch (key) {
+          case 'ok':
+          case 'confirm':
+            button.addClass('bootbox-accept');
+            break;
+
+          case 'cancel':
+            button.addClass('bootbox-cancel');
+            break;
+        }
+
+        button.html(b.label);
+        footer.append(button);
+
+        callbacks[key] = b.callback;
+      });
+
+      body.after(footer);
+    }
+
+    if (options.animate === true) {
+      dialog.addClass('fade');
+    }
+
+    if (options.className) {
+      dialog.addClass(options.className);
+    }
+
+    if (options.size) {
+      // Requires Bootstrap 3.1.0 or higher
+      if (options.fullBootstrapVersion.substring(0, 3) < '3.1') {
+        console.warn('"size" requires Bootstrap 3.1.0 or higher. You appear to be using ' + options.fullBootstrapVersion + '. Please upgrade to use this option.');
+      }
+
+      switch (options.size) {
+        case 'small':
+        case 'sm':
+          innerDialog.addClass('modal-sm');
+          break;
+
+        case 'large':
+        case 'lg':
+          innerDialog.addClass('modal-lg');
+          break;
+
+        case 'extra-large':
+        case 'xl':
+          innerDialog.addClass('modal-xl');
+
+          // Requires Bootstrap 4.2.0 or higher
+          if (options.fullBootstrapVersion.substring(0, 3) < '4.2') {
+            console.warn('Using size "xl"/"extra-large" requires Bootstrap 4.2.0 or higher. You appear to be using ' + options.fullBootstrapVersion + '. Please upgrade to use this option.');
+          }
+          break;
+      }
+    }
+
+    if (options.scrollable) {
+      innerDialog.addClass('modal-dialog-scrollable');
+
+      // Requires Bootstrap 4.3.0 or higher
+      if (options.fullBootstrapVersion.substring(0, 3) < '4.3') {
+        console.warn('Using "scrollable" requires Bootstrap 4.3.0 or higher. You appear to be using ' + options.fullBootstrapVersion + '. Please upgrade to use this option.');
+      }
+    }
+
+    if (options.title) {
+      body.before(header);
+      dialog.find('.modal-title').html(options.title);
+    }
+
+    if (options.closeButton) {
+      var closeButton = $(templates.closeButton);
+
+      if (options.title) {
+        if (options.bootstrap > 3) {
+          dialog.find('.modal-header').append(closeButton);
+        }
+        else {
+          dialog.find('.modal-header').prepend(closeButton);
+        }
+      } else {
+        closeButton.prependTo(body);
+      }
+    }
+
+    if (options.centerVertical) {
+      innerDialog.addClass('modal-dialog-centered');
+
+      // Requires Bootstrap 4.0.0-beta.3 or higher
+      if (options.fullBootstrapVersion < '4.0.0') {
+        console.warn('"centerVertical" requires Bootstrap 4.0.0-beta.3 or higher. You appear to be using ' + options.fullBootstrapVersion + '. Please upgrade to use this option.');
+      }
+    }
+
+    // Bootstrap event listeners; these handle extra
+    // setup & teardown required after the underlying
+    // modal has performed certain actions.
+
+    // make sure we unbind any listeners once the dialog has definitively been dismissed
+    dialog.one('hide.bs.modal', { dialog: dialog }, unbindModal);
+
+    if (options.onHide) {
+      if ($.isFunction(options.onHide)) {
+        dialog.on('hide.bs.modal', options.onHide);
+      }
+      else {
+        throw new Error('Argument supplied to "onHide" must be a function');
+      }
+    }
+
+    dialog.one('hidden.bs.modal', { dialog: dialog }, destroyModal);
+
+    if (options.onHidden) {
+      if ($.isFunction(options.onHidden)) {
+        dialog.on('hidden.bs.modal', options.onHidden);
+      }
+      else {
+        throw new Error('Argument supplied to "onHidden" must be a function');
+      }
+    }
+
+    if (options.onShow) {
+      if ($.isFunction(options.onShow)) {
+        dialog.on('show.bs.modal', options.onShow);
+      }
+      else {
+        throw new Error('Argument supplied to "onShow" must be a function');
+      }
+    }
+
+    dialog.one('shown.bs.modal', { dialog: dialog }, focusPrimaryButton);
+
+    if (options.onShown) {
+      if ($.isFunction(options.onShown)) {
+        dialog.on('shown.bs.modal', options.onShown);
+      }
+      else {
+        throw new Error('Argument supplied to "onShown" must be a function');
+      }
+    }
+
+    // Bootbox event listeners; used to decouple some
+    // behaviours from their respective triggers
+
+    if (options.backdrop !== 'static') {
+      // A boolean true/false according to the Bootstrap docs
+      // should show a dialog the user can dismiss by clicking on
+      // the background.
+      // We always only ever pass static/false to the actual
+      // $.modal function because with "true" we can't trap
+      // this event (the .modal-backdrop swallows it)
+      // However, we still want to sort-of respect true
+      // and invoke the escape mechanism instead
+      dialog.on('click.dismiss.bs.modal', function (e) {
+        // @NOTE: the target varies in >= 3.3.x releases since the modal backdrop
+        // moved *inside* the outer dialog rather than *alongside* it
+        if (dialog.children('.modal-backdrop').length) {
+          e.currentTarget = dialog.children('.modal-backdrop').get(0);
+        }
+
+        if (e.target !== e.currentTarget) {
+          return;
+        }
+
+        dialog.trigger('escape.close.bb');
+      });
+    }
+
+    dialog.on('escape.close.bb', function (e) {
+      // the if statement looks redundant but it isn't; without it
+      // if we *didn't* have an onEscape handler then processCallback
+      // would automatically dismiss the dialog
+      if (callbacks.onEscape) {
+        processCallback(e, dialog, callbacks.onEscape);
+      }
+    });
+
+
+    dialog.on('click', '.modal-footer button:not(.disabled)', function (e) {
+      var callbackKey = $(this).data('bb-handler');
+
+      if (callbackKey !== undefined) {
+        // Only process callbacks for buttons we recognize:
+        processCallback(e, dialog, callbacks[callbackKey]);
+      }
+    });
+
+    dialog.on('click', '.bootbox-close-button', function (e) {
+      // onEscape might be falsy but that's fine; the fact is
+      // if the user has managed to click the close button we
+      // have to close the dialog, callback or not
+      processCallback(e, dialog, callbacks.onEscape);
+    });
+
+    dialog.on('keyup', function (e) {
+      if (e.which === 27) {
+        dialog.trigger('escape.close.bb');
+      }
+    });
+
+    // the remainder of this method simply deals with adding our
+    // dialog element to the DOM, augmenting it with Bootstrap's modal
+    // functionality and then giving the resulting object back
+    // to our caller
+
+    $(options.container).append(dialog);
+
+    dialog.modal({
+      backdrop: options.backdrop ? 'static' : false,
+      keyboard: false,
+      show: false
+    });
+
+    if (options.show) {
+      dialog.modal('show');
+    }
+
+    return dialog;
+  };
+
+
+  // Helper function to simulate the native alert() behavior. **NOTE**: This is non-blocking, so any
+  // code that must happen after the alert is dismissed should be placed within the callback function 
+  // for this alert.
+  exports.alert = function () {
+    var options;
+
+    options = mergeDialogOptions('alert', ['ok'], ['message', 'callback'], arguments);
+
+    // @TODO: can this move inside exports.dialog when we're iterating over each
+    // button and checking its button.callback value instead?
+    if (options.callback && !$.isFunction(options.callback)) {
+      throw new Error('alert requires the "callback" property to be a function when provided');
+    }
+
+    // override the ok and escape callback to make sure they just invoke
+    // the single user-supplied one (if provided)
+    options.buttons.ok.callback = options.onEscape = function () {
+      if ($.isFunction(options.callback)) {
+        return options.callback.call(this);
+      }
+
+      return true;
+    };
+
+    return exports.dialog(options);
+  };
+
+
+  // Helper function to simulate the native confirm() behavior. **NOTE**: This is non-blocking, so any
+  // code that must happen after the confirm is dismissed should be placed within the callback function 
+  // for this confirm.
+  exports.confirm = function () {
+    var options;
+
+    options = mergeDialogOptions('confirm', ['cancel', 'confirm'], ['message', 'callback'], arguments);
+
+    // confirm specific validation; they don't make sense without a callback so make
+    // sure it's present
+    if (!$.isFunction(options.callback)) {
+      throw new Error('confirm requires a callback');
+    }
+
+    // overrides; undo anything the user tried to set they shouldn't have
+    options.buttons.cancel.callback = options.onEscape = function () {
+      return options.callback.call(this, false);
+    };
+
+    options.buttons.confirm.callback = function () {
+      return options.callback.call(this, true);
+    };
+
+    return exports.dialog(options);
+  };
+
+
+  // Helper function to simulate the native prompt() behavior. **NOTE**: This is non-blocking, so any
+  // code that must happen after the prompt is dismissed should be placed within the callback function 
+  // for this prompt.
+  exports.prompt = function () {
+    var options;
+    var promptDialog;
+    var form;
+    var input;
+    var shouldShow;
+    var inputOptions;
+
+    // we have to create our form first otherwise
+    // its value is undefined when gearing up our options
+    // @TODO this could be solved by allowing message to
+    // be a function instead...
+    form = $(templates.form);
+
+    // prompt defaults are more complex than others in that
+    // users can override more defaults
+    options = mergeDialogOptions('prompt', ['cancel', 'confirm'], ['title', 'callback'], arguments);
+
+    if (!options.value) {
+      options.value = defaults.value;
+    }
+
+    if (!options.inputType) {
+      options.inputType = defaults.inputType;
+    }
+
+    // capture the user's show value; we always set this to false before
+    // spawning the dialog to give us a chance to attach some handlers to
+    // it, but we need to make sure we respect a preference not to show it
+    shouldShow = (options.show === undefined) ? defaults.show : options.show;
+
+    // This is required prior to calling the dialog builder below - we need to 
+    // add an event handler just before the prompt is shown
+    options.show = false;
+
+    // Handles the 'cancel' action
+    options.buttons.cancel.callback = options.onEscape = function () {
+      return options.callback.call(this, null);
+    };
+
+    // Prompt submitted - extract the prompt value. This requires a bit of work, 
+    // given the different input types available.
+    options.buttons.confirm.callback = function () {
+      var value;
+
+      if (options.inputType === 'checkbox') {
+        value = input.find('input:checked').map(function () {
+          return $(this).val();
+        }).get();
+      } else if (options.inputType === 'radio') {
+        value = input.find('input:checked').val();
+      }
+      else {
+        if (input[0].checkValidity && !input[0].checkValidity()) {
+          // prevents button callback from being called
+          return false;
+        } else {
+          if (options.inputType === 'select' && options.multiple === true) {
+            value = input.find('option:selected').map(function () {
+              return $(this).val();
+            }).get();
+          }
+          else {
+            value = input.val();
+          }
+        }
+      }
+
+      return options.callback.call(this, value);
+    };
+
+    // prompt-specific validation
+    if (!options.title) {
+      throw new Error('prompt requires a title');
+    }
+
+    if (!$.isFunction(options.callback)) {
+      throw new Error('prompt requires a callback');
+    }
+
+    if (!templates.inputs[options.inputType]) {
+      throw new Error('Invalid prompt type');
+    }
+
+    // create the input based on the supplied type
+    input = $(templates.inputs[options.inputType]);
+
+    switch (options.inputType) {
+      case 'text':
+      case 'textarea':
+      case 'email':
+      case 'password':
+        input.val(options.value);
+
+        if (options.placeholder) {
+          input.attr('placeholder', options.placeholder);
+        }
+
+        if (options.pattern) {
+          input.attr('pattern', options.pattern);
+        }
+
+        if (options.maxlength) {
+          input.attr('maxlength', options.maxlength);
+        }
+
+        if (options.required) {
+          input.prop({ 'required': true });
+        }
+
+        if (options.rows && !isNaN(parseInt(options.rows))) {
+          if (options.inputType === 'textarea') {
+            input.attr({ 'rows': options.rows });
+          }
+        }
+
+        break;
+
+
+      case 'date':
+      case 'time':
+      case 'number':
+      case 'range':
+        input.val(options.value);
+
+        if (options.placeholder) {
+          input.attr('placeholder', options.placeholder);
+        }
+
+        if (options.pattern) {
+          input.attr('pattern', options.pattern);
+        }
+
+        if (options.required) {
+          input.prop({ 'required': true });
+        }
+
+        // These input types have extra attributes which affect their input validation.
+        // Warning: For most browsers, date inputs are buggy in their implementation of 'step', so 
+        // this attribute will have no effect. Therefore, we don't set the attribute for date inputs.
+        // @see https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/date#Setting_maximum_and_minimum_dates
+        if (options.inputType !== 'date') {
+          if (options.step) {
+            if (options.step === 'any' || (!isNaN(options.step) && parseFloat(options.step) > 0)) {
+              input.attr('step', options.step);
+            }
+            else {
+              throw new Error('"step" must be a valid positive number or the value "any". See https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input#attr-step for more information.');
+            }
+          }
+        }
+
+        if (minAndMaxAreValid(options.inputType, options.min, options.max)) {
+          if (options.min !== undefined) {
+            input.attr('min', options.min);
+          }
+          if (options.max !== undefined) {
+            input.attr('max', options.max);
+          }
+        }
+
+        break;
+
+
+      case 'select':
+        var groups = {};
+        inputOptions = options.inputOptions || [];
+
+        if (!$.isArray(inputOptions)) {
+          throw new Error('Please pass an array of input options');
+        }
+
+        if (!inputOptions.length) {
+          throw new Error('prompt with "inputType" set to "select" requires at least one option');
+        }
+
+        // placeholder is not actually a valid attribute for select,
+        // but we'll allow it, assuming it might be used for a plugin
+        if (options.placeholder) {
+          input.attr('placeholder', options.placeholder);
+        }
+
+        if (options.required) {
+          input.prop({ 'required': true });
+        }
+
+        if (options.multiple) {
+          input.prop({ 'multiple': true });
+        }
+
+        each(inputOptions, function (_, option) {
+          // assume the element to attach to is the input...
+          var elem = input;
+
+          if (option.value === undefined || option.text === undefined) {
+            throw new Error('each option needs a "value" property and a "text" property');
+          }
+
+          // ... but override that element if this option sits in a group
+
+          if (option.group) {
+            // initialise group if necessary
+            if (!groups[option.group]) {
+              groups[option.group] = $('<optgroup />').attr('label', option.group);
+            }
+
+            elem = groups[option.group];
+          }
+
+          var o = $(templates.option);
+          o.attr('value', option.value).text(option.text);
+          elem.append(o);
+        });
+
+        each(groups, function (_, group) {
+          input.append(group);
+        });
+
+        // safe to set a select's value as per a normal input
+        input.val(options.value);
+
+        break;
+
+
+      case 'checkbox':
+        var checkboxValues = $.isArray(options.value) ? options.value : [options.value];
+        inputOptions = options.inputOptions || [];
+
+        if (!inputOptions.length) {
+          throw new Error('prompt with "inputType" set to "checkbox" requires at least one option');
+        }
+
+        // checkboxes have to nest within a containing element, so
+        // they break the rules a bit and we end up re-assigning
+        // our 'input' element to this container instead
+        input = $('<div class="bootbox-checkbox-list"></div>');
+
+        each(inputOptions, function (_, option) {
+          if (option.value === undefined || option.text === undefined) {
+            throw new Error('each option needs a "value" property and a "text" property');
+          }
+
+          var checkbox = $(templates.inputs[options.inputType]);
+
+          checkbox.find('input').attr('value', option.value);
+          checkbox.find('label').append('\n' + option.text);
+
+          // we've ensured values is an array so we can always iterate over it
+          each(checkboxValues, function (_, value) {
+            if (value === option.value) {
+              checkbox.find('input').prop('checked', true);
+            }
+          });
+
+          input.append(checkbox);
+        });
+        break;
+
+
+      case 'radio':
+        // Make sure that value is not an array (only a single radio can ever be checked)
+        if (options.value !== undefined && $.isArray(options.value)) {
+          throw new Error('prompt with "inputType" set to "radio" requires a single, non-array value for "value"');
+        }
+
+        inputOptions = options.inputOptions || [];
+
+        if (!inputOptions.length) {
+          throw new Error('prompt with "inputType" set to "radio" requires at least one option');
+        }
+
+        // Radiobuttons have to nest within a containing element, so
+        // they break the rules a bit and we end up re-assigning
+        // our 'input' element to this container instead
+        input = $('<div class="bootbox-radiobutton-list"></div>');
+
+        // Radiobuttons should always have an initial checked input checked in a "group".
+        // If value is undefined or doesn't match an input option, select the first radiobutton
+        var checkFirstRadio = true;
+
+        each(inputOptions, function (_, option) {
+          if (option.value === undefined || option.text === undefined) {
+            throw new Error('each option needs a "value" property and a "text" property');
+          }
+
+          var radio = $(templates.inputs[options.inputType]);
+
+          radio.find('input').attr('value', option.value);
+          radio.find('label').append('\n' + option.text);
+
+          if (options.value !== undefined) {
+            if (option.value === options.value) {
+              radio.find('input').prop('checked', true);
+              checkFirstRadio = false;
+            }
+          }
+
+          input.append(radio);
+        });
+
+        if (checkFirstRadio) {
+          input.find('input[type="radio"]').first().prop('checked', true);
+        }
+        break;
+    }
+
+    // now place it in our form
+    form.append(input);
+
+    form.on('submit', function (e) {
+      e.preventDefault();
+      // Fix for SammyJS (or similar JS routing library) hijacking the form post.
+      e.stopPropagation();
+
+      // @TODO can we actually click *the* button object instead?
+      // e.g. buttons.confirm.click() or similar
+      promptDialog.find('.bootbox-accept').trigger('click');
+    });
+
+    if ($.trim(options.message) !== '') {
+      // Add the form to whatever content the user may have added.
+      var message = $(templates.promptMessage).html(options.message);
+      form.prepend(message);
+      options.message = form;
+    }
+    else {
+      options.message = form;
+    }
+
+    // Generate the dialog
+    promptDialog = exports.dialog(options);
+
+    // clear the existing handler focusing the submit button...
+    promptDialog.off('shown.bs.modal', focusPrimaryButton);
+
+    // ...and replace it with one focusing our input, if possible
+    promptDialog.on('shown.bs.modal', function () {
+      // need the closure here since input isn't
+      // an object otherwise
+      input.focus();
+    });
+
+    if (shouldShow === true) {
+      promptDialog.modal('show');
+    }
+
+    return promptDialog;
+  };
+
+
+  // INTERNAL FUNCTIONS
+  // *************************************************************************************************************
+
+  // Map a flexible set of arguments into a single returned object
+  // If args.length is already one just return it, otherwise
+  // use the properties argument to map the unnamed args to
+  // object properties.
+  // So in the latter case:
+  //  mapArguments(["foo", $.noop], ["message", "callback"])
+  //  -> { message: "foo", callback: $.noop }
+  function mapArguments(args, properties) {
+    var argn = args.length;
+    var options = {};
+
+    if (argn < 1 || argn > 2) {
+      throw new Error('Invalid argument length');
+    }
+
+    if (argn === 2 || typeof args[0] === 'string') {
+      options[properties[0]] = args[0];
+      options[properties[1]] = args[1];
+    } else {
+      options = args[0];
+    }
+
+    return options;
+  }
+
+
+  //  Merge a set of default dialog options with user supplied arguments
+  function mergeArguments(defaults, args, properties) {
+    return $.extend(
+      // deep merge
+      true,
+      // ensure the target is an empty, unreferenced object
+      {},
+      // the base options object for this type of dialog (often just buttons)
+      defaults,
+      // args could be an object or array; if it's an array properties will
+      // map it to a proper options object
+      mapArguments(
+        args,
+        properties
+      )
+    );
+  }
+
+
+  //  This entry-level method makes heavy use of composition to take a simple
+  //  range of inputs and return valid options suitable for passing to bootbox.dialog
+  function mergeDialogOptions(className, labels, properties, args) {
+    var locale;
+    if (args && args[0]) {
+      locale = args[0].locale || defaults.locale;
+      var swapButtons = args[0].swapButtonOrder || defaults.swapButtonOrder;
+
+      if (swapButtons) {
+        labels = labels.reverse();
+      }
+    }
+
+    //  build up a base set of dialog properties
+    var baseOptions = {
+      className: 'bootbox-' + className,
+      buttons: createLabels(labels, locale)
+    };
+
+    // Ensure the buttons properties generated, *after* merging
+    // with user args are still valid against the supplied labels
+    return validateButtons(
+      // merge the generated base properties with user supplied arguments
+      mergeArguments(
+        baseOptions,
+        args,
+        // if args.length > 1, properties specify how each arg maps to an object key
+        properties
+      ),
+      labels
+    );
+  }
+
+
+  //  Checks each button object to see if key is valid. 
+  //  This function will only be called by the alert, confirm, and prompt helpers. 
+  function validateButtons(options, buttons) {
+    var allowedButtons = {};
+    each(buttons, function (key, value) {
+      allowedButtons[value] = true;
+    });
+
+    each(options.buttons, function (key) {
+      if (allowedButtons[key] === undefined) {
+        throw new Error('button key "' + key + '" is not allowed (options are ' + buttons.join(' ') + ')');
+      }
+    });
+
+    return options;
+  }
+
+
+
+  //  From a given list of arguments, return a suitable object of button labels.
+  //  All this does is normalise the given labels and translate them where possible.
+  //  e.g. "ok", "confirm" -> { ok: "OK", cancel: "Annuleren" }
+  function createLabels(labels, locale) {
+    var buttons = {};
+
+    for (var i = 0, j = labels.length; i < j; i++) {
+      var argument = labels[i];
+      var key = argument.toLowerCase();
+      var value = argument.toUpperCase();
+
+      buttons[key] = {
+        label: getText(value, locale)
+      };
+    }
+
+    return buttons;
+  }
+
+
+
+  //  Get localized text from a locale. Defaults to 'en' locale if no locale 
+  //  provided or a non-registered locale is requested
+  function getText(key, locale) {
+    var labels = locales[locale];
+
+    return labels ? labels[key] : locales.en[key];
+  }
+
+
+
+  //  Filter and tidy up any user supplied parameters to this dialog.
+  //  Also looks for any shorthands used and ensures that the options
+  //  which are returned are all normalized properly
+  function sanitize(options) {
+    var buttons;
+    var total;
+
+    if (typeof options !== 'object') {
+      throw new Error('Please supply an object of options');
+    }
+
+    if (!options.message) {
+      throw new Error('"message" option must not be null or an empty string.');
+    }
+
+    // make sure any supplied options take precedence over defaults
+    options = $.extend({}, defaults, options);
+
+    // no buttons is still a valid dialog but it's cleaner to always have
+    // a buttons object to iterate over, even if it's empty
+    if (!options.buttons) {
+      options.buttons = {};
+    }
+
+    buttons = options.buttons;
+
+    total = getKeyLength(buttons);
+
+    each(buttons, function (key, button, index) {
+      if ($.isFunction(button)) {
+        // short form, assume value is our callback. Since button
+        // isn't an object it isn't a reference either so re-assign it
+        button = buttons[key] = {
+          callback: button
+        };
+      }
+
+      // before any further checks make sure by now button is the correct type
+      if ($.type(button) !== 'object') {
+        throw new Error('button with key "' + key + '" must be an object');
+      }
+
+      if (!button.label) {
+        // the lack of an explicit label means we'll assume the key is good enough
+        button.label = key;
+      }
+
+      if (!button.className) {
+        var isPrimary = false;
+        if (options.swapButtonOrder) {
+          isPrimary = index === 0;
+        }
+        else {
+          isPrimary = index === total - 1;
+        }
+
+        if (total <= 2 && isPrimary) {
+          // always add a primary to the main option in a one or two-button dialog
+          button.className = 'btn-primary';
+        } else {
+          // adding both classes allows us to target both BS3 and BS4 without needing to check the version
+          button.className = 'btn-secondary btn-default';
+        }
+      }
+    });
+
+    return options;
+  }
+
+
+  //  Returns a count of the properties defined on the object
+  function getKeyLength(obj) {
+    return Object.keys(obj).length;
+  }
+
+
+  //  Tiny wrapper function around jQuery.each; just adds index as the third parameter
+  function each(collection, iterator) {
+    var index = 0;
+    $.each(collection, function (key, value) {
+      iterator(key, value, index++);
+    });
+  }
+
+
+  function focusPrimaryButton(e) {
+    e.data.dialog.find('.bootbox-accept').first().trigger('focus');
+  }
+
+
+  function destroyModal(e) {
+    // ensure we don't accidentally intercept hidden events triggered
+    // by children of the current dialog. We shouldn't need to handle this anymore, 
+    // now that Bootstrap namespaces its events, but still worth doing.
+    if (e.target === e.data.dialog[0]) {
+      e.data.dialog.remove();
+    }
+  }
+
+
+  function unbindModal(e) {
+    if (e.target === e.data.dialog[0]) {
+      e.data.dialog.off('escape.close.bb');
+      e.data.dialog.off('click');
+    }
+  }
+
+
+  //  Handle the invoked dialog callback
+  function processCallback(e, dialog, callback) {
+    e.stopPropagation();
+    e.preventDefault();
+
+    // by default we assume a callback will get rid of the dialog,
+    // although it is given the opportunity to override this
+
+    // so, if the callback can be invoked and it *explicitly returns false*
+    // then we'll set a flag to keep the dialog active...
+    var preserveDialog = $.isFunction(callback) && callback.call(dialog, e) === false;
+
+    // ... otherwise we'll bin it
+    if (!preserveDialog) {
+      dialog.modal('hide');
+    }
+  }
+
+  // Validate `min` and `max` values based on the current `inputType` value
+  function minAndMaxAreValid(type, min, max) {
+    var result = false;
+    var minValid = true;
+    var maxValid = true;
+
+    if (type === 'date') {
+      if (min !== undefined && !(minValid = dateIsValid(min))) {
+        console.warn('Browsers which natively support the "date" input type expect date values to be of the form "YYYY-MM-DD" (see ISO-8601 https://www.iso.org/iso-8601-date-and-time-format.html). Bootbox does not enforce this rule, but your min value may not be enforced by this browser.');
+      }
+      else if (max !== undefined && !(maxValid = dateIsValid(max))) {
+        console.warn('Browsers which natively support the "date" input type expect date values to be of the form "YYYY-MM-DD" (see ISO-8601 https://www.iso.org/iso-8601-date-and-time-format.html). Bootbox does not enforce this rule, but your max value may not be enforced by this browser.');
+      }
+    }
+    else if (type === 'time') {
+      if (min !== undefined && !(minValid = timeIsValid(min))) {
+        throw new Error('"min" is not a valid time. See https://www.w3.org/TR/2012/WD-html-markup-20120315/datatypes.html#form.data.time for more information.');
+      }
+      else if (max !== undefined && !(maxValid = timeIsValid(max))) {
+        throw new Error('"max" is not a valid time. See https://www.w3.org/TR/2012/WD-html-markup-20120315/datatypes.html#form.data.time for more information.');
+      }
+    }
+    else {
+      if (min !== undefined && isNaN(min)) {
+        minValid = false;
+        throw new Error('"min" must be a valid number. See https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input#attr-min for more information.');
+      }
+
+      if (max !== undefined && isNaN(max)) {
+        maxValid = false;
+        throw new Error('"max" must be a valid number. See https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input#attr-max for more information.');
+      }
+    }
+
+    if (minValid && maxValid) {
+      if (max <= min) {
+        throw new Error('"max" must be greater than "min". See https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input#attr-max for more information.');
+      }
+      else {
+        result = true;
+      }
+    }
+
+    return result;
+  }
+
+  function timeIsValid(value) {
+    return /([01][0-9]|2[0-3]):[0-5][0-9]?:[0-5][0-9]/.test(value);
+  }
+
+  function dateIsValid(value) {
+    return /(\d{4})-(\d{2})-(\d{2})/.test(value);
+  }
+
+  //  The Bootbox object
+  return exports;
+}));
 
 /***/ }),
 
@@ -35773,6 +36782,112 @@ var warnNoMutationObserverSupport = function warnNoMutationObserverSupport(sourc
 
 /***/ }),
 
+/***/ "./node_modules/css-loader/index.js?!./node_modules/postcss-loader/src/index.js?!./node_modules/vuejs-dialog/dist/vuejs-dialog.min.css":
+/*!*********************************************************************************************************************************************!*\
+  !*** ./node_modules/css-loader??ref--6-1!./node_modules/postcss-loader/src??ref--6-2!./node_modules/vuejs-dialog/dist/vuejs-dialog.min.css ***!
+  \*********************************************************************************************************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+exports = module.exports = __webpack_require__(/*! ../../css-loader/lib/css-base.js */ "./node_modules/css-loader/lib/css-base.js")(false);
+// imports
+
+
+// module
+exports.push([module.i, "\n.fadeTr-enter-active {\n  -webkit-transition: opacity 0.3s ease-in;\n  transition: opacity 0.3s ease-in;\n  -webkit-transition-delay: 0.1s;\n          transition-delay: 0.1s;\n}\n.fadeTr-leave-active {\n  -webkit-transition: opacity 0.1s ease-out;\n  transition: opacity 0.1s ease-out;\n}\n.fadeTr-enter, .fadeTr-leave-to {\n  opacity: 0;\n}\n.slide-enter-active,\n.slide-leave-active {\n  -webkit-transition: all 1s;\n  transition: all 1s;\n}\n.slide-enter,\n.slide-leave-to {\n  opacity: 0;\n  -webkit-transform: translateX(30px);\n          transform: translateX(30px);\n}\n.dg-backdrop-enter-active {\n  -webkit-animation: dg-fadeIn .3s;\n          animation: dg-fadeIn .3s;\n}\n.dg-backdrop-leave-active {\n  -webkit-animation: dg-fadeOut .5s;\n          animation: dg-fadeOut .5s;\n}\n.dg-fade-enter-active {\n  -webkit-animation: dg-fadeIn 0.6s cubic-bezier(0, 0, 0.58, 1);\n          animation: dg-fadeIn 0.6s cubic-bezier(0, 0, 0.58, 1);\n}\n.dg-fade-leave-active {\n  -webkit-animation: dg-fadeOut 0.6s cubic-bezier(0, 0, 0.58, 1);\n          animation: dg-fadeOut 0.6s cubic-bezier(0, 0, 0.58, 1);\n}\n@-webkit-keyframes dg-fadeIn {\n0% {\n    opacity: 0;\n}\n100% {\n    opacity: 1;\n}\n}\n@keyframes dg-fadeIn {\n0% {\n    opacity: 0;\n}\n100% {\n    opacity: 1;\n}\n}\n@-webkit-keyframes dg-fadeOut {\n0% {\n    opacity: 1;\n}\n100% {\n    opacity: 0;\n}\n}\n@keyframes dg-fadeOut {\n0% {\n    opacity: 1;\n}\n100% {\n    opacity: 0;\n}\n}\n.dg-zoom-enter-active {\n  -webkit-animation: dg-zoomIn 0.3s cubic-bezier(0, 0, 0.58, 1);\n          animation: dg-zoomIn 0.3s cubic-bezier(0, 0, 0.58, 1);\n}\n.dg-zoom-leave-active {\n  -webkit-animation: dg-zoomOut 0.4s cubic-bezier(0, 0, 0.58, 1);\n          animation: dg-zoomOut 0.4s cubic-bezier(0, 0, 0.58, 1);\n}\n@-webkit-keyframes dg-zoomIn {\n0% {\n    opacity: 0;\n    -webkit-transform: scale3d(0.3, 0.3, 0.3);\n    transform: scale3d(0.3, 0.3, 0.3);\n}\n50% {\n    opacity: 1;\n}\n}\n@keyframes dg-zoomIn {\n0% {\n    opacity: 0;\n    -webkit-transform: scale3d(0.3, 0.3, 0.3);\n    transform: scale3d(0.3, 0.3, 0.3);\n}\n50% {\n    opacity: 1;\n}\n}\n@-webkit-keyframes dg-zoomOut {\n0% {\n    opacity: 1;\n}\n50% {\n    opacity: 0;\n    -webkit-transform: scale3d(0.3, 0.3, 0.3);\n    transform: scale3d(0.3, 0.3, 0.3);\n}\n100% {\n    opacity: 0;\n}\n}\n@keyframes dg-zoomOut {\n0% {\n    opacity: 1;\n}\n50% {\n    opacity: 0;\n    -webkit-transform: scale3d(0.3, 0.3, 0.3);\n    transform: scale3d(0.3, 0.3, 0.3);\n}\n100% {\n    opacity: 0;\n}\n}\n.dg-bounce-enter-active {\n  -webkit-animation: dg-bounceIn .6s;\n          animation: dg-bounceIn .6s;\n}\n.dg-bounce-leave-active {\n  -webkit-animation: dg-zoomOut .6s;\n          animation: dg-zoomOut .6s;\n}\n@-webkit-keyframes dg-bounceIn {\n0% {\n    opacity: 0;\n    -webkit-transform: scale(0.3);\n            transform: scale(0.3);\n}\n40% {\n    opacity: 1;\n    -webkit-transform: scale(1.06);\n            transform: scale(1.06);\n}\n60% {\n    -webkit-transform: scale(0.92);\n            transform: scale(0.92);\n}\n100% {\n    -webkit-transform: scale(1);\n            transform: scale(1);\n}\n}\n@keyframes dg-bounceIn {\n0% {\n    opacity: 0;\n    -webkit-transform: scale(0.3);\n            transform: scale(0.3);\n}\n40% {\n    opacity: 1;\n    -webkit-transform: scale(1.06);\n            transform: scale(1.06);\n}\n60% {\n    -webkit-transform: scale(0.92);\n            transform: scale(0.92);\n}\n100% {\n    -webkit-transform: scale(1);\n            transform: scale(1);\n}\n}\n@-webkit-keyframes dg-bounceOut {\n0% {\n    -webkit-transform: scale(1);\n            transform: scale(1);\n}\n25% {\n    -webkit-transform: scale(0.95);\n            transform: scale(0.95);\n}\n50% {\n    opacity: 1;\n    -webkit-transform: scale(1.1);\n            transform: scale(1.1);\n}\n100% {\n    opacity: 0;\n    -webkit-transform: scale(0.3);\n            transform: scale(0.3);\n}\n}\n@keyframes dg-bounceOut {\n0% {\n    -webkit-transform: scale(1);\n            transform: scale(1);\n}\n25% {\n    -webkit-transform: scale(0.95);\n            transform: scale(0.95);\n}\n50% {\n    opacity: 1;\n    -webkit-transform: scale(1.1);\n            transform: scale(1.1);\n}\n100% {\n    opacity: 0;\n    -webkit-transform: scale(0.3);\n            transform: scale(0.3);\n}\n}\n.dg-btn-loader {\n  width: 100%;\n  height: 100%;\n  position: absolute;\n  display: -webkit-box;\n  display: -ms-flexbox;\n  display: flex;\n  -webkit-box-align: center;\n      -ms-flex-align: center;\n          align-items: center;\n  top: 0;\n  left: 0;\n}\n.dg-btn-loader .dg-circles {\n    width: 100%;\n    display: block;\n    text-align: center;\n}\n.dg-btn-loader .dg-circle {\n    width: .9em;\n    height: .9em;\n    opacity: 0;\n    background-color: #09a2e3;\n    display: inline-block;\n    border-radius: 50%;\n    -webkit-animation-name: dg-circle-oscillation;\n            animation-name: dg-circle-oscillation;\n    -webkit-animation-duration: 0.5875s;\n            animation-duration: 0.5875s;\n    -webkit-animation-iteration-count: infinite;\n            animation-iteration-count: infinite;\n    -webkit-animation-direction: normal;\n            animation-direction: normal;\n}\n.dg-btn-loader .dg-circle:not(:last-child) {\n      margin-right: 8px;\n}\n.dg-btn-loader .dg-circle:nth-child(1) {\n      -webkit-animation-delay: 0.1195s;\n              animation-delay: 0.1195s;\n}\n.dg-btn-loader .dg-circle:nth-child(2) {\n      -webkit-animation-delay: 0.2755s;\n              animation-delay: 0.2755s;\n}\n.dg-btn-loader .dg-circle:nth-child(3) {\n      -webkit-animation-delay: 0.3485s;\n              animation-delay: 0.3485s;\n}\n@-webkit-keyframes dg-circle-oscillation {\n0% {\n}\n50% {\n    opacity: 1;\n}\n100% {\n}\n}\n@keyframes dg-circle-oscillation {\n0% {\n}\n50% {\n    opacity: 1;\n}\n100% {\n}\n}\nbody.dg-open {\n  width: 100%;\n  height: 100%;\n  overflow: hidden;\n}\n.dg-container * {\n  -webkit-box-sizing: border-box;\n          box-sizing: border-box;\n}\n.dg-container [disabled] {\n  cursor: not-allowed;\n  opacity: .3;\n}\n.dg-backdrop {\n  background-color: rgba(0, 0, 0, 0.8);\n  position: fixed;\n  top: 0;\n  left: 0;\n  width: 100%;\n  height: 100%;\n  z-index: 5000;\n}\n.dg-container {\n  width: 100%;\n  height: 100%;\n  position: fixed;\n  top: 0;\n  left: 0;\n  z-index: 5000;\n}\n.dg-content-cont {\n  width: 100%;\n  font-family: inherit;\n}\n.dg-main-content {\n  width: 98%;\n  /*width: calc(98% - 30px);*/\n  max-width: 400px;\n  padding: 15px;\n  border-radius: 5px;\n  margin: 25px auto;\n  background-color: #ffffff;\n}\n.dg-content {\n  font-size: 16px;\n  line-height: 1.3em;\n}\n.dg-title {\n  margin: 0 0 10px 0;\n  padding: 0;\n  font-size: 18px;\n}\n.dg-content-body {\n  border-bottom: 2px solid #E1E6EA;\n  padding-bottom: 15px;\n}\n.dg-content-footer {\n  position: relative;\n  padding: 15px 0 0;\n}\n.dg-form {\n  background-color: ghostwhite;\n  padding: 10px;\n  margin-bottom: -15px;\n}\n.dg-content-cont--floating {\n  position: absolute;\n  top: 35%;\n  -webkit-transform: translateY(-70%);\n          transform: translateY(-70%);\n  margin-top: 0;\n}\n@media all and (max-height: 700px) {\n.dg-content-cont--floating {\n    position: relative;\n    top: 10%;\n    -webkit-transform: none;\n            transform: none;\n    margin-top: 0;\n}\n}\n.dg-btn {\n  display: inline-block;\n  position: relative;\n  min-width: 80px;\n  padding: 6px 20px;\n  border-radius: 4px;\n  outline: 0;\n  border: 2px solid transparent;\n  text-align: center;\n  text-decoration: none;\n  cursor: pointer;\n  outline: none;\n  -webkit-appearance: none;\n  -moz-appearance: none;\n  appearance: none;\n  font-size: 16px;\n  font-weight: 700;\n}\n.dg-btn:focus,\n.dg-btn:active,\n.dg-btn:link {\n  outline: none;\n}\n.dg-btn::-moz-focus-inner {\n  border: 0;\n}\n.dg-btn--cancel {\n  color: #fefefe;\n  background-color: #0096D9;\n}\n.dg-btn--ok {\n  color: #0096D9;\n  background-color: #fefefe;\n  border-color: #0096D9;\n}\n.dg-pull-right {\n  float: right;\n}\n.dg-btn.dg-btn--loading .dg-btn-content {\n  visibility: hidden;\n}\n.dg-clear:before {\n  content: ' ';\n  display: block;\n  clear: both;\n}\n.dg-content-body--has-title .dg-content {\n  font-size: 14px;\n}\n.dg-container--has-input .dg-main-content {\n  max-width: 450px;\n}\n.dg-container--has-input .dg-content {\n  margin-bottom: 15px;\n}\n.dg-container--has-input .dg-content-body {\n  border-bottom: none;\n}\n.dg-container--has-input .dg-form {\n  border: 1px solid #E1E6EA;\n  border-bottom: none;\n  border-top-left-radius: 4px;\n  border-top-right-radius: 4px;\n}\n.dg-container--has-input .dg-content-footer {\n  background-color: ghostwhite;\n  border: 1px solid #E1E6EA;\n  border-top: none;\n  border-bottom-left-radius: 4px;\n  border-bottom-right-radius: 4px;\n  padding: 0 10px 10px;\n}\n.dg-container .dg-highlight-1 {\n  color: #FF8C00;\n  font-weight: bold;\n  border-bottom: 1px solid #2ba5ff;\n}\n.dg-container .dg-highlight-2 {\n  color: #2ba5ff;\n  font-weight: bold;\n  border-bottom: 1px solid #FF8C00;\n}\n\n", ""]);
+
+// exports
+
+
+/***/ }),
+
+/***/ "./node_modules/css-loader/lib/css-base.js":
+/*!*************************************************!*\
+  !*** ./node_modules/css-loader/lib/css-base.js ***!
+  \*************************************************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
+/*
+	MIT License http://www.opensource.org/licenses/mit-license.php
+	Author Tobias Koppers @sokra
+*/
+// css base code, injected by the css-loader
+module.exports = function(useSourceMap) {
+	var list = [];
+
+	// return the list of modules as css string
+	list.toString = function toString() {
+		return this.map(function (item) {
+			var content = cssWithMappingToString(item, useSourceMap);
+			if(item[2]) {
+				return "@media " + item[2] + "{" + content + "}";
+			} else {
+				return content;
+			}
+		}).join("");
+	};
+
+	// import a list of modules into the list
+	list.i = function(modules, mediaQuery) {
+		if(typeof modules === "string")
+			modules = [[null, modules, ""]];
+		var alreadyImportedModules = {};
+		for(var i = 0; i < this.length; i++) {
+			var id = this[i][0];
+			if(typeof id === "number")
+				alreadyImportedModules[id] = true;
+		}
+		for(i = 0; i < modules.length; i++) {
+			var item = modules[i];
+			// skip already imported module
+			// this implementation is not 100% perfect for weird media query combinations
+			//  when a module is imported multiple times with different media queries.
+			//  I hope this will never occur (Hey this way we have smaller bundles)
+			if(typeof item[0] !== "number" || !alreadyImportedModules[item[0]]) {
+				if(mediaQuery && !item[2]) {
+					item[2] = mediaQuery;
+				} else if(mediaQuery) {
+					item[2] = "(" + item[2] + ") and (" + mediaQuery + ")";
+				}
+				list.push(item);
+			}
+		}
+	};
+	return list;
+};
+
+function cssWithMappingToString(item, useSourceMap) {
+	var content = item[1] || '';
+	var cssMapping = item[3];
+	if (!cssMapping) {
+		return content;
+	}
+
+	if (useSourceMap && typeof btoa === 'function') {
+		var sourceMapping = toComment(cssMapping);
+		var sourceURLs = cssMapping.sources.map(function (source) {
+			return '/*# sourceURL=' + cssMapping.sourceRoot + source + ' */'
+		});
+
+		return [content].concat(sourceURLs).concat([sourceMapping]).join('\n');
+	}
+
+	return [content].join('\n');
+}
+
+// Adapted from convert-source-map (MIT)
+function toComment(sourceMap) {
+	// eslint-disable-next-line no-undef
+	var base64 = btoa(unescape(encodeURIComponent(JSON.stringify(sourceMap))));
+	var data = 'sourceMappingURL=data:application/json;charset=utf-8;base64,' + base64;
+
+	return '/*# ' + data + ' */';
+}
+
+
+/***/ }),
+
 /***/ "./node_modules/is-buffer/index.js":
 /*!*****************************************!*\
   !*** ./node_modules/is-buffer/index.js ***!
@@ -66974,743 +68089,6 @@ process.umask = function() { return 0; };
 
 /***/ }),
 
-/***/ "./node_modules/regenerator-runtime/runtime.js":
-/*!*****************************************************!*\
-  !*** ./node_modules/regenerator-runtime/runtime.js ***!
-  \*****************************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-/**
- * Copyright (c) 2014-present, Facebook, Inc.
- *
- * This source code is licensed under the MIT license found in the
- * LICENSE file in the root directory of this source tree.
- */
-
-var runtime = (function (exports) {
-  "use strict";
-
-  var Op = Object.prototype;
-  var hasOwn = Op.hasOwnProperty;
-  var undefined; // More compressible than void 0.
-  var $Symbol = typeof Symbol === "function" ? Symbol : {};
-  var iteratorSymbol = $Symbol.iterator || "@@iterator";
-  var asyncIteratorSymbol = $Symbol.asyncIterator || "@@asyncIterator";
-  var toStringTagSymbol = $Symbol.toStringTag || "@@toStringTag";
-
-  function wrap(innerFn, outerFn, self, tryLocsList) {
-    // If outerFn provided and outerFn.prototype is a Generator, then outerFn.prototype instanceof Generator.
-    var protoGenerator = outerFn && outerFn.prototype instanceof Generator ? outerFn : Generator;
-    var generator = Object.create(protoGenerator.prototype);
-    var context = new Context(tryLocsList || []);
-
-    // The ._invoke method unifies the implementations of the .next,
-    // .throw, and .return methods.
-    generator._invoke = makeInvokeMethod(innerFn, self, context);
-
-    return generator;
-  }
-  exports.wrap = wrap;
-
-  // Try/catch helper to minimize deoptimizations. Returns a completion
-  // record like context.tryEntries[i].completion. This interface could
-  // have been (and was previously) designed to take a closure to be
-  // invoked without arguments, but in all the cases we care about we
-  // already have an existing method we want to call, so there's no need
-  // to create a new function object. We can even get away with assuming
-  // the method takes exactly one argument, since that happens to be true
-  // in every case, so we don't have to touch the arguments object. The
-  // only additional allocation required is the completion record, which
-  // has a stable shape and so hopefully should be cheap to allocate.
-  function tryCatch(fn, obj, arg) {
-    try {
-      return { type: "normal", arg: fn.call(obj, arg) };
-    } catch (err) {
-      return { type: "throw", arg: err };
-    }
-  }
-
-  var GenStateSuspendedStart = "suspendedStart";
-  var GenStateSuspendedYield = "suspendedYield";
-  var GenStateExecuting = "executing";
-  var GenStateCompleted = "completed";
-
-  // Returning this object from the innerFn has the same effect as
-  // breaking out of the dispatch switch statement.
-  var ContinueSentinel = {};
-
-  // Dummy constructor functions that we use as the .constructor and
-  // .constructor.prototype properties for functions that return Generator
-  // objects. For full spec compliance, you may wish to configure your
-  // minifier not to mangle the names of these two functions.
-  function Generator() {}
-  function GeneratorFunction() {}
-  function GeneratorFunctionPrototype() {}
-
-  // This is a polyfill for %IteratorPrototype% for environments that
-  // don't natively support it.
-  var IteratorPrototype = {};
-  IteratorPrototype[iteratorSymbol] = function () {
-    return this;
-  };
-
-  var getProto = Object.getPrototypeOf;
-  var NativeIteratorPrototype = getProto && getProto(getProto(values([])));
-  if (NativeIteratorPrototype &&
-      NativeIteratorPrototype !== Op &&
-      hasOwn.call(NativeIteratorPrototype, iteratorSymbol)) {
-    // This environment has a native %IteratorPrototype%; use it instead
-    // of the polyfill.
-    IteratorPrototype = NativeIteratorPrototype;
-  }
-
-  var Gp = GeneratorFunctionPrototype.prototype =
-    Generator.prototype = Object.create(IteratorPrototype);
-  GeneratorFunction.prototype = Gp.constructor = GeneratorFunctionPrototype;
-  GeneratorFunctionPrototype.constructor = GeneratorFunction;
-  GeneratorFunctionPrototype[toStringTagSymbol] =
-    GeneratorFunction.displayName = "GeneratorFunction";
-
-  // Helper for defining the .next, .throw, and .return methods of the
-  // Iterator interface in terms of a single ._invoke method.
-  function defineIteratorMethods(prototype) {
-    ["next", "throw", "return"].forEach(function(method) {
-      prototype[method] = function(arg) {
-        return this._invoke(method, arg);
-      };
-    });
-  }
-
-  exports.isGeneratorFunction = function(genFun) {
-    var ctor = typeof genFun === "function" && genFun.constructor;
-    return ctor
-      ? ctor === GeneratorFunction ||
-        // For the native GeneratorFunction constructor, the best we can
-        // do is to check its .name property.
-        (ctor.displayName || ctor.name) === "GeneratorFunction"
-      : false;
-  };
-
-  exports.mark = function(genFun) {
-    if (Object.setPrototypeOf) {
-      Object.setPrototypeOf(genFun, GeneratorFunctionPrototype);
-    } else {
-      genFun.__proto__ = GeneratorFunctionPrototype;
-      if (!(toStringTagSymbol in genFun)) {
-        genFun[toStringTagSymbol] = "GeneratorFunction";
-      }
-    }
-    genFun.prototype = Object.create(Gp);
-    return genFun;
-  };
-
-  // Within the body of any async function, `await x` is transformed to
-  // `yield regeneratorRuntime.awrap(x)`, so that the runtime can test
-  // `hasOwn.call(value, "__await")` to determine if the yielded value is
-  // meant to be awaited.
-  exports.awrap = function(arg) {
-    return { __await: arg };
-  };
-
-  function AsyncIterator(generator) {
-    function invoke(method, arg, resolve, reject) {
-      var record = tryCatch(generator[method], generator, arg);
-      if (record.type === "throw") {
-        reject(record.arg);
-      } else {
-        var result = record.arg;
-        var value = result.value;
-        if (value &&
-            typeof value === "object" &&
-            hasOwn.call(value, "__await")) {
-          return Promise.resolve(value.__await).then(function(value) {
-            invoke("next", value, resolve, reject);
-          }, function(err) {
-            invoke("throw", err, resolve, reject);
-          });
-        }
-
-        return Promise.resolve(value).then(function(unwrapped) {
-          // When a yielded Promise is resolved, its final value becomes
-          // the .value of the Promise<{value,done}> result for the
-          // current iteration.
-          result.value = unwrapped;
-          resolve(result);
-        }, function(error) {
-          // If a rejected Promise was yielded, throw the rejection back
-          // into the async generator function so it can be handled there.
-          return invoke("throw", error, resolve, reject);
-        });
-      }
-    }
-
-    var previousPromise;
-
-    function enqueue(method, arg) {
-      function callInvokeWithMethodAndArg() {
-        return new Promise(function(resolve, reject) {
-          invoke(method, arg, resolve, reject);
-        });
-      }
-
-      return previousPromise =
-        // If enqueue has been called before, then we want to wait until
-        // all previous Promises have been resolved before calling invoke,
-        // so that results are always delivered in the correct order. If
-        // enqueue has not been called before, then it is important to
-        // call invoke immediately, without waiting on a callback to fire,
-        // so that the async generator function has the opportunity to do
-        // any necessary setup in a predictable way. This predictability
-        // is why the Promise constructor synchronously invokes its
-        // executor callback, and why async functions synchronously
-        // execute code before the first await. Since we implement simple
-        // async functions in terms of async generators, it is especially
-        // important to get this right, even though it requires care.
-        previousPromise ? previousPromise.then(
-          callInvokeWithMethodAndArg,
-          // Avoid propagating failures to Promises returned by later
-          // invocations of the iterator.
-          callInvokeWithMethodAndArg
-        ) : callInvokeWithMethodAndArg();
-    }
-
-    // Define the unified helper method that is used to implement .next,
-    // .throw, and .return (see defineIteratorMethods).
-    this._invoke = enqueue;
-  }
-
-  defineIteratorMethods(AsyncIterator.prototype);
-  AsyncIterator.prototype[asyncIteratorSymbol] = function () {
-    return this;
-  };
-  exports.AsyncIterator = AsyncIterator;
-
-  // Note that simple async functions are implemented on top of
-  // AsyncIterator objects; they just return a Promise for the value of
-  // the final result produced by the iterator.
-  exports.async = function(innerFn, outerFn, self, tryLocsList) {
-    var iter = new AsyncIterator(
-      wrap(innerFn, outerFn, self, tryLocsList)
-    );
-
-    return exports.isGeneratorFunction(outerFn)
-      ? iter // If outerFn is a generator, return the full iterator.
-      : iter.next().then(function(result) {
-          return result.done ? result.value : iter.next();
-        });
-  };
-
-  function makeInvokeMethod(innerFn, self, context) {
-    var state = GenStateSuspendedStart;
-
-    return function invoke(method, arg) {
-      if (state === GenStateExecuting) {
-        throw new Error("Generator is already running");
-      }
-
-      if (state === GenStateCompleted) {
-        if (method === "throw") {
-          throw arg;
-        }
-
-        // Be forgiving, per 25.3.3.3.3 of the spec:
-        // https://people.mozilla.org/~jorendorff/es6-draft.html#sec-generatorresume
-        return doneResult();
-      }
-
-      context.method = method;
-      context.arg = arg;
-
-      while (true) {
-        var delegate = context.delegate;
-        if (delegate) {
-          var delegateResult = maybeInvokeDelegate(delegate, context);
-          if (delegateResult) {
-            if (delegateResult === ContinueSentinel) continue;
-            return delegateResult;
-          }
-        }
-
-        if (context.method === "next") {
-          // Setting context._sent for legacy support of Babel's
-          // function.sent implementation.
-          context.sent = context._sent = context.arg;
-
-        } else if (context.method === "throw") {
-          if (state === GenStateSuspendedStart) {
-            state = GenStateCompleted;
-            throw context.arg;
-          }
-
-          context.dispatchException(context.arg);
-
-        } else if (context.method === "return") {
-          context.abrupt("return", context.arg);
-        }
-
-        state = GenStateExecuting;
-
-        var record = tryCatch(innerFn, self, context);
-        if (record.type === "normal") {
-          // If an exception is thrown from innerFn, we leave state ===
-          // GenStateExecuting and loop back for another invocation.
-          state = context.done
-            ? GenStateCompleted
-            : GenStateSuspendedYield;
-
-          if (record.arg === ContinueSentinel) {
-            continue;
-          }
-
-          return {
-            value: record.arg,
-            done: context.done
-          };
-
-        } else if (record.type === "throw") {
-          state = GenStateCompleted;
-          // Dispatch the exception by looping back around to the
-          // context.dispatchException(context.arg) call above.
-          context.method = "throw";
-          context.arg = record.arg;
-        }
-      }
-    };
-  }
-
-  // Call delegate.iterator[context.method](context.arg) and handle the
-  // result, either by returning a { value, done } result from the
-  // delegate iterator, or by modifying context.method and context.arg,
-  // setting context.delegate to null, and returning the ContinueSentinel.
-  function maybeInvokeDelegate(delegate, context) {
-    var method = delegate.iterator[context.method];
-    if (method === undefined) {
-      // A .throw or .return when the delegate iterator has no .throw
-      // method always terminates the yield* loop.
-      context.delegate = null;
-
-      if (context.method === "throw") {
-        // Note: ["return"] must be used for ES3 parsing compatibility.
-        if (delegate.iterator["return"]) {
-          // If the delegate iterator has a return method, give it a
-          // chance to clean up.
-          context.method = "return";
-          context.arg = undefined;
-          maybeInvokeDelegate(delegate, context);
-
-          if (context.method === "throw") {
-            // If maybeInvokeDelegate(context) changed context.method from
-            // "return" to "throw", let that override the TypeError below.
-            return ContinueSentinel;
-          }
-        }
-
-        context.method = "throw";
-        context.arg = new TypeError(
-          "The iterator does not provide a 'throw' method");
-      }
-
-      return ContinueSentinel;
-    }
-
-    var record = tryCatch(method, delegate.iterator, context.arg);
-
-    if (record.type === "throw") {
-      context.method = "throw";
-      context.arg = record.arg;
-      context.delegate = null;
-      return ContinueSentinel;
-    }
-
-    var info = record.arg;
-
-    if (! info) {
-      context.method = "throw";
-      context.arg = new TypeError("iterator result is not an object");
-      context.delegate = null;
-      return ContinueSentinel;
-    }
-
-    if (info.done) {
-      // Assign the result of the finished delegate to the temporary
-      // variable specified by delegate.resultName (see delegateYield).
-      context[delegate.resultName] = info.value;
-
-      // Resume execution at the desired location (see delegateYield).
-      context.next = delegate.nextLoc;
-
-      // If context.method was "throw" but the delegate handled the
-      // exception, let the outer generator proceed normally. If
-      // context.method was "next", forget context.arg since it has been
-      // "consumed" by the delegate iterator. If context.method was
-      // "return", allow the original .return call to continue in the
-      // outer generator.
-      if (context.method !== "return") {
-        context.method = "next";
-        context.arg = undefined;
-      }
-
-    } else {
-      // Re-yield the result returned by the delegate method.
-      return info;
-    }
-
-    // The delegate iterator is finished, so forget it and continue with
-    // the outer generator.
-    context.delegate = null;
-    return ContinueSentinel;
-  }
-
-  // Define Generator.prototype.{next,throw,return} in terms of the
-  // unified ._invoke helper method.
-  defineIteratorMethods(Gp);
-
-  Gp[toStringTagSymbol] = "Generator";
-
-  // A Generator should always return itself as the iterator object when the
-  // @@iterator function is called on it. Some browsers' implementations of the
-  // iterator prototype chain incorrectly implement this, causing the Generator
-  // object to not be returned from this call. This ensures that doesn't happen.
-  // See https://github.com/facebook/regenerator/issues/274 for more details.
-  Gp[iteratorSymbol] = function() {
-    return this;
-  };
-
-  Gp.toString = function() {
-    return "[object Generator]";
-  };
-
-  function pushTryEntry(locs) {
-    var entry = { tryLoc: locs[0] };
-
-    if (1 in locs) {
-      entry.catchLoc = locs[1];
-    }
-
-    if (2 in locs) {
-      entry.finallyLoc = locs[2];
-      entry.afterLoc = locs[3];
-    }
-
-    this.tryEntries.push(entry);
-  }
-
-  function resetTryEntry(entry) {
-    var record = entry.completion || {};
-    record.type = "normal";
-    delete record.arg;
-    entry.completion = record;
-  }
-
-  function Context(tryLocsList) {
-    // The root entry object (effectively a try statement without a catch
-    // or a finally block) gives us a place to store values thrown from
-    // locations where there is no enclosing try statement.
-    this.tryEntries = [{ tryLoc: "root" }];
-    tryLocsList.forEach(pushTryEntry, this);
-    this.reset(true);
-  }
-
-  exports.keys = function(object) {
-    var keys = [];
-    for (var key in object) {
-      keys.push(key);
-    }
-    keys.reverse();
-
-    // Rather than returning an object with a next method, we keep
-    // things simple and return the next function itself.
-    return function next() {
-      while (keys.length) {
-        var key = keys.pop();
-        if (key in object) {
-          next.value = key;
-          next.done = false;
-          return next;
-        }
-      }
-
-      // To avoid creating an additional object, we just hang the .value
-      // and .done properties off the next function object itself. This
-      // also ensures that the minifier will not anonymize the function.
-      next.done = true;
-      return next;
-    };
-  };
-
-  function values(iterable) {
-    if (iterable) {
-      var iteratorMethod = iterable[iteratorSymbol];
-      if (iteratorMethod) {
-        return iteratorMethod.call(iterable);
-      }
-
-      if (typeof iterable.next === "function") {
-        return iterable;
-      }
-
-      if (!isNaN(iterable.length)) {
-        var i = -1, next = function next() {
-          while (++i < iterable.length) {
-            if (hasOwn.call(iterable, i)) {
-              next.value = iterable[i];
-              next.done = false;
-              return next;
-            }
-          }
-
-          next.value = undefined;
-          next.done = true;
-
-          return next;
-        };
-
-        return next.next = next;
-      }
-    }
-
-    // Return an iterator with no values.
-    return { next: doneResult };
-  }
-  exports.values = values;
-
-  function doneResult() {
-    return { value: undefined, done: true };
-  }
-
-  Context.prototype = {
-    constructor: Context,
-
-    reset: function(skipTempReset) {
-      this.prev = 0;
-      this.next = 0;
-      // Resetting context._sent for legacy support of Babel's
-      // function.sent implementation.
-      this.sent = this._sent = undefined;
-      this.done = false;
-      this.delegate = null;
-
-      this.method = "next";
-      this.arg = undefined;
-
-      this.tryEntries.forEach(resetTryEntry);
-
-      if (!skipTempReset) {
-        for (var name in this) {
-          // Not sure about the optimal order of these conditions:
-          if (name.charAt(0) === "t" &&
-              hasOwn.call(this, name) &&
-              !isNaN(+name.slice(1))) {
-            this[name] = undefined;
-          }
-        }
-      }
-    },
-
-    stop: function() {
-      this.done = true;
-
-      var rootEntry = this.tryEntries[0];
-      var rootRecord = rootEntry.completion;
-      if (rootRecord.type === "throw") {
-        throw rootRecord.arg;
-      }
-
-      return this.rval;
-    },
-
-    dispatchException: function(exception) {
-      if (this.done) {
-        throw exception;
-      }
-
-      var context = this;
-      function handle(loc, caught) {
-        record.type = "throw";
-        record.arg = exception;
-        context.next = loc;
-
-        if (caught) {
-          // If the dispatched exception was caught by a catch block,
-          // then let that catch block handle the exception normally.
-          context.method = "next";
-          context.arg = undefined;
-        }
-
-        return !! caught;
-      }
-
-      for (var i = this.tryEntries.length - 1; i >= 0; --i) {
-        var entry = this.tryEntries[i];
-        var record = entry.completion;
-
-        if (entry.tryLoc === "root") {
-          // Exception thrown outside of any try block that could handle
-          // it, so set the completion value of the entire function to
-          // throw the exception.
-          return handle("end");
-        }
-
-        if (entry.tryLoc <= this.prev) {
-          var hasCatch = hasOwn.call(entry, "catchLoc");
-          var hasFinally = hasOwn.call(entry, "finallyLoc");
-
-          if (hasCatch && hasFinally) {
-            if (this.prev < entry.catchLoc) {
-              return handle(entry.catchLoc, true);
-            } else if (this.prev < entry.finallyLoc) {
-              return handle(entry.finallyLoc);
-            }
-
-          } else if (hasCatch) {
-            if (this.prev < entry.catchLoc) {
-              return handle(entry.catchLoc, true);
-            }
-
-          } else if (hasFinally) {
-            if (this.prev < entry.finallyLoc) {
-              return handle(entry.finallyLoc);
-            }
-
-          } else {
-            throw new Error("try statement without catch or finally");
-          }
-        }
-      }
-    },
-
-    abrupt: function(type, arg) {
-      for (var i = this.tryEntries.length - 1; i >= 0; --i) {
-        var entry = this.tryEntries[i];
-        if (entry.tryLoc <= this.prev &&
-            hasOwn.call(entry, "finallyLoc") &&
-            this.prev < entry.finallyLoc) {
-          var finallyEntry = entry;
-          break;
-        }
-      }
-
-      if (finallyEntry &&
-          (type === "break" ||
-           type === "continue") &&
-          finallyEntry.tryLoc <= arg &&
-          arg <= finallyEntry.finallyLoc) {
-        // Ignore the finally entry if control is not jumping to a
-        // location outside the try/catch block.
-        finallyEntry = null;
-      }
-
-      var record = finallyEntry ? finallyEntry.completion : {};
-      record.type = type;
-      record.arg = arg;
-
-      if (finallyEntry) {
-        this.method = "next";
-        this.next = finallyEntry.finallyLoc;
-        return ContinueSentinel;
-      }
-
-      return this.complete(record);
-    },
-
-    complete: function(record, afterLoc) {
-      if (record.type === "throw") {
-        throw record.arg;
-      }
-
-      if (record.type === "break" ||
-          record.type === "continue") {
-        this.next = record.arg;
-      } else if (record.type === "return") {
-        this.rval = this.arg = record.arg;
-        this.method = "return";
-        this.next = "end";
-      } else if (record.type === "normal" && afterLoc) {
-        this.next = afterLoc;
-      }
-
-      return ContinueSentinel;
-    },
-
-    finish: function(finallyLoc) {
-      for (var i = this.tryEntries.length - 1; i >= 0; --i) {
-        var entry = this.tryEntries[i];
-        if (entry.finallyLoc === finallyLoc) {
-          this.complete(entry.completion, entry.afterLoc);
-          resetTryEntry(entry);
-          return ContinueSentinel;
-        }
-      }
-    },
-
-    "catch": function(tryLoc) {
-      for (var i = this.tryEntries.length - 1; i >= 0; --i) {
-        var entry = this.tryEntries[i];
-        if (entry.tryLoc === tryLoc) {
-          var record = entry.completion;
-          if (record.type === "throw") {
-            var thrown = record.arg;
-            resetTryEntry(entry);
-          }
-          return thrown;
-        }
-      }
-
-      // The context.catch method must only be called with a location
-      // argument that corresponds to a known catch block.
-      throw new Error("illegal catch attempt");
-    },
-
-    delegateYield: function(iterable, resultName, nextLoc) {
-      this.delegate = {
-        iterator: values(iterable),
-        resultName: resultName,
-        nextLoc: nextLoc
-      };
-
-      if (this.method === "next") {
-        // Deliberately forget the last sent value so that we don't
-        // accidentally pass it on to the delegate.
-        this.arg = undefined;
-      }
-
-      return ContinueSentinel;
-    }
-  };
-
-  // Regardless of whether this script is executing as a CommonJS module
-  // or not, return the runtime object so that we can declare the variable
-  // regeneratorRuntime in the outer scope, which allows this module to be
-  // injected easily by `bin/regenerator --include-runtime script.js`.
-  return exports;
-
-}(
-  // If this script is executing as a CommonJS module, use module.exports
-  // as the regeneratorRuntime namespace. Otherwise create a new empty
-  // object. Either way, the resulting object will be used to initialize
-  // the regeneratorRuntime variable at the top of this file.
-   true ? module.exports : undefined
-));
-
-try {
-  regeneratorRuntime = runtime;
-} catch (accidentalStrictMode) {
-  // This module should not be running in strict mode, so the above
-  // assignment should always work unless something is misconfigured. Just
-  // in case runtime.js accidentally runs in strict mode, we can escape
-  // strict mode using a global Function call. This could conceivably fail
-  // if a Content Security Policy forbids using Function, but in that case
-  // the proper solution is to fix the accidental strict mode problem. If
-  // you've misconfigured your bundler to force strict mode and applied a
-  // CSP to forbid Function, and you're not willing to fix either of those
-  // problems, please detail your unique predicament in a GitHub issue.
-  Function("r", "regeneratorRuntime = r")(runtime);
-}
-
-
-/***/ }),
-
 /***/ "./node_modules/setimmediate/setImmediate.js":
 /*!***************************************************!*\
   !*** ./node_modules/setimmediate/setImmediate.js ***!
@@ -67909,6 +68287,515 @@ try {
 
 /***/ }),
 
+/***/ "./node_modules/style-loader/lib/addStyles.js":
+/*!****************************************************!*\
+  !*** ./node_modules/style-loader/lib/addStyles.js ***!
+  \****************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+/*
+	MIT License http://www.opensource.org/licenses/mit-license.php
+	Author Tobias Koppers @sokra
+*/
+
+var stylesInDom = {};
+
+var	memoize = function (fn) {
+	var memo;
+
+	return function () {
+		if (typeof memo === "undefined") memo = fn.apply(this, arguments);
+		return memo;
+	};
+};
+
+var isOldIE = memoize(function () {
+	// Test for IE <= 9 as proposed by Browserhacks
+	// @see http://browserhacks.com/#hack-e71d8692f65334173fee715c222cb805
+	// Tests for existence of standard globals is to allow style-loader
+	// to operate correctly into non-standard environments
+	// @see https://github.com/webpack-contrib/style-loader/issues/177
+	return window && document && document.all && !window.atob;
+});
+
+var getTarget = function (target, parent) {
+  if (parent){
+    return parent.querySelector(target);
+  }
+  return document.querySelector(target);
+};
+
+var getElement = (function (fn) {
+	var memo = {};
+
+	return function(target, parent) {
+                // If passing function in options, then use it for resolve "head" element.
+                // Useful for Shadow Root style i.e
+                // {
+                //   insertInto: function () { return document.querySelector("#foo").shadowRoot }
+                // }
+                if (typeof target === 'function') {
+                        return target();
+                }
+                if (typeof memo[target] === "undefined") {
+			var styleTarget = getTarget.call(this, target, parent);
+			// Special case to return head of iframe instead of iframe itself
+			if (window.HTMLIFrameElement && styleTarget instanceof window.HTMLIFrameElement) {
+				try {
+					// This will throw an exception if access to iframe is blocked
+					// due to cross-origin restrictions
+					styleTarget = styleTarget.contentDocument.head;
+				} catch(e) {
+					styleTarget = null;
+				}
+			}
+			memo[target] = styleTarget;
+		}
+		return memo[target]
+	};
+})();
+
+var singleton = null;
+var	singletonCounter = 0;
+var	stylesInsertedAtTop = [];
+
+var	fixUrls = __webpack_require__(/*! ./urls */ "./node_modules/style-loader/lib/urls.js");
+
+module.exports = function(list, options) {
+	if (typeof DEBUG !== "undefined" && DEBUG) {
+		if (typeof document !== "object") throw new Error("The style-loader cannot be used in a non-browser environment");
+	}
+
+	options = options || {};
+
+	options.attrs = typeof options.attrs === "object" ? options.attrs : {};
+
+	// Force single-tag solution on IE6-9, which has a hard limit on the # of <style>
+	// tags it will allow on a page
+	if (!options.singleton && typeof options.singleton !== "boolean") options.singleton = isOldIE();
+
+	// By default, add <style> tags to the <head> element
+        if (!options.insertInto) options.insertInto = "head";
+
+	// By default, add <style> tags to the bottom of the target
+	if (!options.insertAt) options.insertAt = "bottom";
+
+	var styles = listToStyles(list, options);
+
+	addStylesToDom(styles, options);
+
+	return function update (newList) {
+		var mayRemove = [];
+
+		for (var i = 0; i < styles.length; i++) {
+			var item = styles[i];
+			var domStyle = stylesInDom[item.id];
+
+			domStyle.refs--;
+			mayRemove.push(domStyle);
+		}
+
+		if(newList) {
+			var newStyles = listToStyles(newList, options);
+			addStylesToDom(newStyles, options);
+		}
+
+		for (var i = 0; i < mayRemove.length; i++) {
+			var domStyle = mayRemove[i];
+
+			if(domStyle.refs === 0) {
+				for (var j = 0; j < domStyle.parts.length; j++) domStyle.parts[j]();
+
+				delete stylesInDom[domStyle.id];
+			}
+		}
+	};
+};
+
+function addStylesToDom (styles, options) {
+	for (var i = 0; i < styles.length; i++) {
+		var item = styles[i];
+		var domStyle = stylesInDom[item.id];
+
+		if(domStyle) {
+			domStyle.refs++;
+
+			for(var j = 0; j < domStyle.parts.length; j++) {
+				domStyle.parts[j](item.parts[j]);
+			}
+
+			for(; j < item.parts.length; j++) {
+				domStyle.parts.push(addStyle(item.parts[j], options));
+			}
+		} else {
+			var parts = [];
+
+			for(var j = 0; j < item.parts.length; j++) {
+				parts.push(addStyle(item.parts[j], options));
+			}
+
+			stylesInDom[item.id] = {id: item.id, refs: 1, parts: parts};
+		}
+	}
+}
+
+function listToStyles (list, options) {
+	var styles = [];
+	var newStyles = {};
+
+	for (var i = 0; i < list.length; i++) {
+		var item = list[i];
+		var id = options.base ? item[0] + options.base : item[0];
+		var css = item[1];
+		var media = item[2];
+		var sourceMap = item[3];
+		var part = {css: css, media: media, sourceMap: sourceMap};
+
+		if(!newStyles[id]) styles.push(newStyles[id] = {id: id, parts: [part]});
+		else newStyles[id].parts.push(part);
+	}
+
+	return styles;
+}
+
+function insertStyleElement (options, style) {
+	var target = getElement(options.insertInto)
+
+	if (!target) {
+		throw new Error("Couldn't find a style target. This probably means that the value for the 'insertInto' parameter is invalid.");
+	}
+
+	var lastStyleElementInsertedAtTop = stylesInsertedAtTop[stylesInsertedAtTop.length - 1];
+
+	if (options.insertAt === "top") {
+		if (!lastStyleElementInsertedAtTop) {
+			target.insertBefore(style, target.firstChild);
+		} else if (lastStyleElementInsertedAtTop.nextSibling) {
+			target.insertBefore(style, lastStyleElementInsertedAtTop.nextSibling);
+		} else {
+			target.appendChild(style);
+		}
+		stylesInsertedAtTop.push(style);
+	} else if (options.insertAt === "bottom") {
+		target.appendChild(style);
+	} else if (typeof options.insertAt === "object" && options.insertAt.before) {
+		var nextSibling = getElement(options.insertAt.before, target);
+		target.insertBefore(style, nextSibling);
+	} else {
+		throw new Error("[Style Loader]\n\n Invalid value for parameter 'insertAt' ('options.insertAt') found.\n Must be 'top', 'bottom', or Object.\n (https://github.com/webpack-contrib/style-loader#insertat)\n");
+	}
+}
+
+function removeStyleElement (style) {
+	if (style.parentNode === null) return false;
+	style.parentNode.removeChild(style);
+
+	var idx = stylesInsertedAtTop.indexOf(style);
+	if(idx >= 0) {
+		stylesInsertedAtTop.splice(idx, 1);
+	}
+}
+
+function createStyleElement (options) {
+	var style = document.createElement("style");
+
+	if(options.attrs.type === undefined) {
+		options.attrs.type = "text/css";
+	}
+
+	if(options.attrs.nonce === undefined) {
+		var nonce = getNonce();
+		if (nonce) {
+			options.attrs.nonce = nonce;
+		}
+	}
+
+	addAttrs(style, options.attrs);
+	insertStyleElement(options, style);
+
+	return style;
+}
+
+function createLinkElement (options) {
+	var link = document.createElement("link");
+
+	if(options.attrs.type === undefined) {
+		options.attrs.type = "text/css";
+	}
+	options.attrs.rel = "stylesheet";
+
+	addAttrs(link, options.attrs);
+	insertStyleElement(options, link);
+
+	return link;
+}
+
+function addAttrs (el, attrs) {
+	Object.keys(attrs).forEach(function (key) {
+		el.setAttribute(key, attrs[key]);
+	});
+}
+
+function getNonce() {
+	if (false) {}
+
+	return __webpack_require__.nc;
+}
+
+function addStyle (obj, options) {
+	var style, update, remove, result;
+
+	// If a transform function was defined, run it on the css
+	if (options.transform && obj.css) {
+	    result = typeof options.transform === 'function'
+		 ? options.transform(obj.css) 
+		 : options.transform.default(obj.css);
+
+	    if (result) {
+	    	// If transform returns a value, use that instead of the original css.
+	    	// This allows running runtime transformations on the css.
+	    	obj.css = result;
+	    } else {
+	    	// If the transform function returns a falsy value, don't add this css.
+	    	// This allows conditional loading of css
+	    	return function() {
+	    		// noop
+	    	};
+	    }
+	}
+
+	if (options.singleton) {
+		var styleIndex = singletonCounter++;
+
+		style = singleton || (singleton = createStyleElement(options));
+
+		update = applyToSingletonTag.bind(null, style, styleIndex, false);
+		remove = applyToSingletonTag.bind(null, style, styleIndex, true);
+
+	} else if (
+		obj.sourceMap &&
+		typeof URL === "function" &&
+		typeof URL.createObjectURL === "function" &&
+		typeof URL.revokeObjectURL === "function" &&
+		typeof Blob === "function" &&
+		typeof btoa === "function"
+	) {
+		style = createLinkElement(options);
+		update = updateLink.bind(null, style, options);
+		remove = function () {
+			removeStyleElement(style);
+
+			if(style.href) URL.revokeObjectURL(style.href);
+		};
+	} else {
+		style = createStyleElement(options);
+		update = applyToTag.bind(null, style);
+		remove = function () {
+			removeStyleElement(style);
+		};
+	}
+
+	update(obj);
+
+	return function updateStyle (newObj) {
+		if (newObj) {
+			if (
+				newObj.css === obj.css &&
+				newObj.media === obj.media &&
+				newObj.sourceMap === obj.sourceMap
+			) {
+				return;
+			}
+
+			update(obj = newObj);
+		} else {
+			remove();
+		}
+	};
+}
+
+var replaceText = (function () {
+	var textStore = [];
+
+	return function (index, replacement) {
+		textStore[index] = replacement;
+
+		return textStore.filter(Boolean).join('\n');
+	};
+})();
+
+function applyToSingletonTag (style, index, remove, obj) {
+	var css = remove ? "" : obj.css;
+
+	if (style.styleSheet) {
+		style.styleSheet.cssText = replaceText(index, css);
+	} else {
+		var cssNode = document.createTextNode(css);
+		var childNodes = style.childNodes;
+
+		if (childNodes[index]) style.removeChild(childNodes[index]);
+
+		if (childNodes.length) {
+			style.insertBefore(cssNode, childNodes[index]);
+		} else {
+			style.appendChild(cssNode);
+		}
+	}
+}
+
+function applyToTag (style, obj) {
+	var css = obj.css;
+	var media = obj.media;
+
+	if(media) {
+		style.setAttribute("media", media)
+	}
+
+	if(style.styleSheet) {
+		style.styleSheet.cssText = css;
+	} else {
+		while(style.firstChild) {
+			style.removeChild(style.firstChild);
+		}
+
+		style.appendChild(document.createTextNode(css));
+	}
+}
+
+function updateLink (link, options, obj) {
+	var css = obj.css;
+	var sourceMap = obj.sourceMap;
+
+	/*
+		If convertToAbsoluteUrls isn't defined, but sourcemaps are enabled
+		and there is no publicPath defined then lets turn convertToAbsoluteUrls
+		on by default.  Otherwise default to the convertToAbsoluteUrls option
+		directly
+	*/
+	var autoFixUrls = options.convertToAbsoluteUrls === undefined && sourceMap;
+
+	if (options.convertToAbsoluteUrls || autoFixUrls) {
+		css = fixUrls(css);
+	}
+
+	if (sourceMap) {
+		// http://stackoverflow.com/a/26603875
+		css += "\n/*# sourceMappingURL=data:application/json;base64," + btoa(unescape(encodeURIComponent(JSON.stringify(sourceMap)))) + " */";
+	}
+
+	var blob = new Blob([css], { type: "text/css" });
+
+	var oldSrc = link.href;
+
+	link.href = URL.createObjectURL(blob);
+
+	if(oldSrc) URL.revokeObjectURL(oldSrc);
+}
+
+
+/***/ }),
+
+/***/ "./node_modules/style-loader/lib/urls.js":
+/*!***********************************************!*\
+  !*** ./node_modules/style-loader/lib/urls.js ***!
+  \***********************************************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
+
+/**
+ * When source maps are enabled, `style-loader` uses a link element with a data-uri to
+ * embed the css on the page. This breaks all relative urls because now they are relative to a
+ * bundle instead of the current page.
+ *
+ * One solution is to only use full urls, but that may be impossible.
+ *
+ * Instead, this function "fixes" the relative urls to be absolute according to the current page location.
+ *
+ * A rudimentary test suite is located at `test/fixUrls.js` and can be run via the `npm test` command.
+ *
+ */
+
+module.exports = function (css) {
+  // get current location
+  var location = typeof window !== "undefined" && window.location;
+
+  if (!location) {
+    throw new Error("fixUrls requires window.location");
+  }
+
+	// blank or null?
+	if (!css || typeof css !== "string") {
+	  return css;
+  }
+
+  var baseUrl = location.protocol + "//" + location.host;
+  var currentDir = baseUrl + location.pathname.replace(/\/[^\/]*$/, "/");
+
+	// convert each url(...)
+	/*
+	This regular expression is just a way to recursively match brackets within
+	a string.
+
+	 /url\s*\(  = Match on the word "url" with any whitespace after it and then a parens
+	   (  = Start a capturing group
+	     (?:  = Start a non-capturing group
+	         [^)(]  = Match anything that isn't a parentheses
+	         |  = OR
+	         \(  = Match a start parentheses
+	             (?:  = Start another non-capturing groups
+	                 [^)(]+  = Match anything that isn't a parentheses
+	                 |  = OR
+	                 \(  = Match a start parentheses
+	                     [^)(]*  = Match anything that isn't a parentheses
+	                 \)  = Match a end parentheses
+	             )  = End Group
+              *\) = Match anything and then a close parens
+          )  = Close non-capturing group
+          *  = Match anything
+       )  = Close capturing group
+	 \)  = Match a close parens
+
+	 /gi  = Get all matches, not the first.  Be case insensitive.
+	 */
+	var fixedCss = css.replace(/url\s*\(((?:[^)(]|\((?:[^)(]+|\([^)(]*\))*\))*)\)/gi, function(fullMatch, origUrl) {
+		// strip quotes (if they exist)
+		var unquotedOrigUrl = origUrl
+			.trim()
+			.replace(/^"(.*)"$/, function(o, $1){ return $1; })
+			.replace(/^'(.*)'$/, function(o, $1){ return $1; });
+
+		// already a full url? no change
+		if (/^(#|data:|http:\/\/|https:\/\/|file:\/\/\/|\s*$)/i.test(unquotedOrigUrl)) {
+		  return fullMatch;
+		}
+
+		// convert the url to a full url
+		var newUrl;
+
+		if (unquotedOrigUrl.indexOf("//") === 0) {
+		  	//TODO: should we add protocol?
+			newUrl = unquotedOrigUrl;
+		} else if (unquotedOrigUrl.indexOf("/") === 0) {
+			// path should be relative to the base url
+			newUrl = baseUrl + unquotedOrigUrl; // already starts with '/'
+		} else {
+			// path should be relative to current directory
+			newUrl = currentDir + unquotedOrigUrl.replace(/^\.\//, ""); // Strip leading './'
+		}
+
+		// send back the fixed url(...)
+		return "url(" + JSON.stringify(newUrl) + ")";
+	});
+
+	// send back the fixed css
+	return fixedCss;
+};
+
+
+/***/ }),
+
 /***/ "./node_modules/timers-browserify/main.js":
 /*!************************************************!*\
   !*** ./node_modules/timers-browserify/main.js ***!
@@ -68018,23 +68905,7 @@ var render = function() {
   return _c(
     "div",
     [
-      _c("Header"),
-      _vm._v(" "),
-      _c(
-        "div",
-        { attrs: { id: "wrapper" } },
-        [
-          _c("Sidebar"),
-          _vm._v(" "),
-          _c(
-            "div",
-            { attrs: { id: "content-wrapper" } },
-            [_c("router-view")],
-            1
-          )
-        ],
-        1
-      ),
+      _c("router-view"),
       _vm._v(" "),
       _c("FlashMessage", { attrs: { position: "right top" } })
     ],
@@ -68100,7 +68971,24 @@ var render = function() {
   var _vm = this
   var _h = _vm.$createElement
   var _c = _vm._self._c || _h
-  return _vm._m(0)
+  return _c(
+    "nav",
+    { staticClass: "navbar navbar-expand navbar-dark bg-dark static-top" },
+    [
+      _c("router-link", { attrs: { to: "/home" } }, [
+        _c("a", { staticClass: "navbar-brand mr-1" }, [
+          _vm._v("Start Bootstrap")
+        ])
+      ]),
+      _vm._v(" "),
+      _vm._m(0),
+      _vm._v(" "),
+      _vm._m(1),
+      _vm._v(" "),
+      _vm._m(2)
+    ],
+    1
+  )
 }
 var staticRenderFns = [
   function() {
@@ -68108,214 +68996,192 @@ var staticRenderFns = [
     var _h = _vm.$createElement
     var _c = _vm._self._c || _h
     return _c(
-      "nav",
-      { staticClass: "navbar navbar-expand navbar-dark bg-dark static-top" },
+      "button",
+      {
+        staticClass: "btn btn-link btn-sm text-white order-1 order-sm-0",
+        attrs: { id: "sidebarToggle", href: "#" }
+      },
+      [_c("i", { staticClass: "fas fa-bars" })]
+    )
+  },
+  function() {
+    var _vm = this
+    var _h = _vm.$createElement
+    var _c = _vm._self._c || _h
+    return _c(
+      "form",
+      {
+        staticClass:
+          "d-none d-md-inline-block form-inline ml-auto mr-0 mr-md-3 my-2 my-md-0"
+      },
       [
-        _c(
-          "a",
-          { staticClass: "navbar-brand mr-1", attrs: { href: "index.html" } },
-          [_vm._v("Start Bootstrap")]
-        ),
-        _vm._v(" "),
-        _c(
-          "button",
-          {
-            staticClass: "btn btn-link btn-sm text-white order-1 order-sm-0",
-            attrs: { id: "sidebarToggle", href: "#" }
-          },
-          [_c("i", { staticClass: "fas fa-bars" })]
-        ),
-        _vm._v(" "),
-        _c(
-          "form",
-          {
-            staticClass:
-              "d-none d-md-inline-block form-inline ml-auto mr-0 mr-md-3 my-2 my-md-0"
-          },
-          [
-            _c("div", { staticClass: "input-group" }, [
-              _c("input", {
-                staticClass: "form-control",
-                attrs: {
-                  type: "text",
-                  placeholder: "Search for...",
-                  "aria-label": "Search",
-                  "aria-describedby": "basic-addon2"
-                }
-              }),
-              _vm._v(" "),
-              _c("div", { staticClass: "input-group-append" }, [
-                _c(
-                  "button",
-                  { staticClass: "btn btn-primary", attrs: { type: "button" } },
-                  [_c("i", { staticClass: "fas fa-search" })]
-                )
-              ])
-            ])
-          ]
-        ),
-        _vm._v(" "),
-        _c("ul", { staticClass: "navbar-nav ml-auto ml-md-0" }, [
-          _c("li", { staticClass: "nav-item dropdown no-arrow mx-1" }, [
-            _c(
-              "a",
-              {
-                staticClass: "nav-link dropdown-toggle",
-                attrs: {
-                  href: "#",
-                  id: "alertsDropdown",
-                  role: "button",
-                  "data-toggle": "dropdown",
-                  "aria-haspopup": "true",
-                  "aria-expanded": "false"
-                }
-              },
-              [
-                _c("i", { staticClass: "fas fa-bell fa-fw" }),
-                _vm._v(" "),
-                _c("span", { staticClass: "badge badge-danger" }, [
-                  _vm._v("9+")
-                ])
-              ]
-            ),
-            _vm._v(" "),
-            _c(
-              "div",
-              {
-                staticClass: "dropdown-menu dropdown-menu-right",
-                attrs: { "aria-labelledby": "alertsDropdown" }
-              },
-              [
-                _c(
-                  "a",
-                  { staticClass: "dropdown-item", attrs: { href: "#" } },
-                  [_vm._v("Action")]
-                ),
-                _vm._v(" "),
-                _c(
-                  "a",
-                  { staticClass: "dropdown-item", attrs: { href: "#" } },
-                  [_vm._v("Another action")]
-                ),
-                _vm._v(" "),
-                _c("div", { staticClass: "dropdown-divider" }),
-                _vm._v(" "),
-                _c(
-                  "a",
-                  { staticClass: "dropdown-item", attrs: { href: "#" } },
-                  [_vm._v("Something else here")]
-                )
-              ]
-            )
-          ]),
+        _c("div", { staticClass: "input-group" }, [
+          _c("input", {
+            staticClass: "form-control",
+            attrs: {
+              type: "text",
+              placeholder: "Search for...",
+              "aria-label": "Search",
+              "aria-describedby": "basic-addon2"
+            }
+          }),
           _vm._v(" "),
-          _c("li", { staticClass: "nav-item dropdown no-arrow mx-1" }, [
+          _c("div", { staticClass: "input-group-append" }, [
             _c(
-              "a",
-              {
-                staticClass: "nav-link dropdown-toggle",
-                attrs: {
-                  href: "#",
-                  id: "messagesDropdown",
-                  role: "button",
-                  "data-toggle": "dropdown",
-                  "aria-haspopup": "true",
-                  "aria-expanded": "false"
-                }
-              },
-              [
-                _c("i", { staticClass: "fas fa-envelope fa-fw" }),
-                _vm._v(" "),
-                _c("span", { staticClass: "badge badge-danger" }, [_vm._v("7")])
-              ]
-            ),
-            _vm._v(" "),
-            _c(
-              "div",
-              {
-                staticClass: "dropdown-menu dropdown-menu-right",
-                attrs: { "aria-labelledby": "messagesDropdown" }
-              },
-              [
-                _c(
-                  "a",
-                  { staticClass: "dropdown-item", attrs: { href: "#" } },
-                  [_vm._v("Action")]
-                ),
-                _vm._v(" "),
-                _c(
-                  "a",
-                  { staticClass: "dropdown-item", attrs: { href: "#" } },
-                  [_vm._v("Another action")]
-                ),
-                _vm._v(" "),
-                _c("div", { staticClass: "dropdown-divider" }),
-                _vm._v(" "),
-                _c(
-                  "a",
-                  { staticClass: "dropdown-item", attrs: { href: "#" } },
-                  [_vm._v("Something else here")]
-                )
-              ]
-            )
-          ]),
-          _vm._v(" "),
-          _c("li", { staticClass: "nav-item dropdown no-arrow" }, [
-            _c(
-              "a",
-              {
-                staticClass: "nav-link dropdown-toggle",
-                attrs: {
-                  href: "#",
-                  id: "userDropdown",
-                  role: "button",
-                  "data-toggle": "dropdown",
-                  "aria-haspopup": "true",
-                  "aria-expanded": "false"
-                }
-              },
-              [_c("i", { staticClass: "fas fa-user-circle fa-fw" })]
-            ),
-            _vm._v(" "),
-            _c(
-              "div",
-              {
-                staticClass: "dropdown-menu dropdown-menu-right",
-                attrs: { "aria-labelledby": "userDropdown" }
-              },
-              [
-                _c(
-                  "a",
-                  { staticClass: "dropdown-item", attrs: { href: "#" } },
-                  [_vm._v("Settings")]
-                ),
-                _vm._v(" "),
-                _c(
-                  "a",
-                  { staticClass: "dropdown-item", attrs: { href: "#" } },
-                  [_vm._v("Activity Log")]
-                ),
-                _vm._v(" "),
-                _c("div", { staticClass: "dropdown-divider" }),
-                _vm._v(" "),
-                _c(
-                  "a",
-                  {
-                    staticClass: "dropdown-item",
-                    attrs: {
-                      href: "#",
-                      "data-toggle": "modal",
-                      "data-target": "#logoutModal"
-                    }
-                  },
-                  [_vm._v("Logout")]
-                )
-              ]
+              "button",
+              { staticClass: "btn btn-primary", attrs: { type: "button" } },
+              [_c("i", { staticClass: "fas fa-search" })]
             )
           ])
         ])
       ]
     )
+  },
+  function() {
+    var _vm = this
+    var _h = _vm.$createElement
+    var _c = _vm._self._c || _h
+    return _c("ul", { staticClass: "navbar-nav ml-auto ml-md-0" }, [
+      _c("li", { staticClass: "nav-item dropdown no-arrow mx-1" }, [
+        _c(
+          "a",
+          {
+            staticClass: "nav-link dropdown-toggle",
+            attrs: {
+              href: "#",
+              id: "alertsDropdown",
+              role: "button",
+              "data-toggle": "dropdown",
+              "aria-haspopup": "true",
+              "aria-expanded": "false"
+            }
+          },
+          [
+            _c("i", { staticClass: "fas fa-bell fa-fw" }),
+            _vm._v(" "),
+            _c("span", { staticClass: "badge badge-danger" }, [_vm._v("9+")])
+          ]
+        ),
+        _vm._v(" "),
+        _c(
+          "div",
+          {
+            staticClass: "dropdown-menu dropdown-menu-right",
+            attrs: { "aria-labelledby": "alertsDropdown" }
+          },
+          [
+            _c("a", { staticClass: "dropdown-item", attrs: { href: "#" } }, [
+              _vm._v("Action")
+            ]),
+            _vm._v(" "),
+            _c("a", { staticClass: "dropdown-item", attrs: { href: "#" } }, [
+              _vm._v("Another action")
+            ]),
+            _vm._v(" "),
+            _c("div", { staticClass: "dropdown-divider" }),
+            _vm._v(" "),
+            _c("a", { staticClass: "dropdown-item", attrs: { href: "#" } }, [
+              _vm._v("Something else here")
+            ])
+          ]
+        )
+      ]),
+      _vm._v(" "),
+      _c("li", { staticClass: "nav-item dropdown no-arrow mx-1" }, [
+        _c(
+          "a",
+          {
+            staticClass: "nav-link dropdown-toggle",
+            attrs: {
+              href: "#",
+              id: "messagesDropdown",
+              role: "button",
+              "data-toggle": "dropdown",
+              "aria-haspopup": "true",
+              "aria-expanded": "false"
+            }
+          },
+          [
+            _c("i", { staticClass: "fas fa-envelope fa-fw" }),
+            _vm._v(" "),
+            _c("span", { staticClass: "badge badge-danger" }, [_vm._v("7")])
+          ]
+        ),
+        _vm._v(" "),
+        _c(
+          "div",
+          {
+            staticClass: "dropdown-menu dropdown-menu-right",
+            attrs: { "aria-labelledby": "messagesDropdown" }
+          },
+          [
+            _c("a", { staticClass: "dropdown-item", attrs: { href: "#" } }, [
+              _vm._v("Action")
+            ]),
+            _vm._v(" "),
+            _c("a", { staticClass: "dropdown-item", attrs: { href: "#" } }, [
+              _vm._v("Another action")
+            ]),
+            _vm._v(" "),
+            _c("div", { staticClass: "dropdown-divider" }),
+            _vm._v(" "),
+            _c("a", { staticClass: "dropdown-item", attrs: { href: "#" } }, [
+              _vm._v("Something else here")
+            ])
+          ]
+        )
+      ]),
+      _vm._v(" "),
+      _c("li", { staticClass: "nav-item dropdown no-arrow" }, [
+        _c(
+          "a",
+          {
+            staticClass: "nav-link dropdown-toggle",
+            attrs: {
+              href: "#",
+              id: "userDropdown",
+              role: "button",
+              "data-toggle": "dropdown",
+              "aria-haspopup": "true",
+              "aria-expanded": "false"
+            }
+          },
+          [_c("i", { staticClass: "fas fa-user-circle fa-fw" })]
+        ),
+        _vm._v(" "),
+        _c(
+          "div",
+          {
+            staticClass: "dropdown-menu dropdown-menu-right",
+            attrs: { "aria-labelledby": "userDropdown" }
+          },
+          [
+            _c("a", { staticClass: "dropdown-item", attrs: { href: "#" } }, [
+              _vm._v("Settings")
+            ]),
+            _vm._v(" "),
+            _c("a", { staticClass: "dropdown-item", attrs: { href: "#" } }, [
+              _vm._v("Activity Log")
+            ]),
+            _vm._v(" "),
+            _c("div", { staticClass: "dropdown-divider" }),
+            _vm._v(" "),
+            _c(
+              "a",
+              {
+                staticClass: "dropdown-item",
+                attrs: {
+                  href: "#",
+                  "data-toggle": "modal",
+                  "data-target": "#logoutModal"
+                }
+              },
+              [_vm._v("Logout")]
+            )
+          ]
+        )
+      ])
+    ])
   }
 ]
 render._withStripped = true
@@ -68346,7 +69212,7 @@ var render = function() {
       [
         _c(
           "router-link",
-          { staticClass: "nav-link", attrs: { to: "/", exact: "" } },
+          { staticClass: "nav-link", attrs: { to: "/home", exact: "" } },
           [
             _c("i", { staticClass: "fas fa-fw fa-tachometer-alt" }),
             _vm._v(" "),
@@ -68363,7 +69229,10 @@ var render = function() {
       [
         _c(
           "router-link",
-          { staticClass: "nav-link", attrs: { to: "/categories", exact: "" } },
+          {
+            staticClass: "nav-link",
+            attrs: { to: "/home/categories", exact: "" }
+          },
           [
             _c("i", { staticClass: "fas fa-fw fa-chart-area" }),
             _vm._v(" "),
@@ -68382,10 +69251,10 @@ render._withStripped = true
 
 /***/ }),
 
-/***/ "./node_modules/vue-loader/lib/loaders/templateLoader.js?!./node_modules/vue-loader/lib/index.js?!./resources/js/views/Categories.vue?vue&type=template&id=53f0967b&scoped=true&":
-/*!********************************************************************************************************************************************************************************************************************!*\
-  !*** ./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/vue-loader/lib??vue-loader-options!./resources/js/views/Categories.vue?vue&type=template&id=53f0967b&scoped=true& ***!
-  \********************************************************************************************************************************************************************************************************************/
+/***/ "./node_modules/vue-loader/lib/loaders/templateLoader.js?!./node_modules/vue-loader/lib/index.js?!./resources/js/views/Home.vue?vue&type=template&id=63cd6604&scoped=true&":
+/*!**************************************************************************************************************************************************************************************************************!*\
+  !*** ./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/vue-loader/lib??vue-loader-options!./resources/js/views/Home.vue?vue&type=template&id=63cd6604&scoped=true& ***!
+  \**************************************************************************************************************************************************************************************************************/
 /*! exports provided: render, staticRenderFns */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
@@ -68399,551 +69268,29 @@ var render = function() {
   var _c = _vm._self._c || _h
   return _c(
     "div",
-    { staticClass: "container-fluid" },
     [
-      _c("ol", { staticClass: "breadcrumb" }, [
-        _c(
-          "li",
-          { staticClass: "breadcrumb-item active" },
-          [_c("router-link", { attrs: { to: "/" } }, [_vm._v("Categories")])],
-          1
-        ),
-        _vm._v(" "),
-        _c("li", { staticClass: "breadcrumb-item" }, [_vm._v("Overview")])
-      ]),
+      _c("Header"),
       _vm._v(" "),
-      _c("div", { staticClass: "card mb-3" }, [
-        _c("div", { staticClass: "card-header d-flex" }, [
-          _vm._m(0),
+      _c(
+        "div",
+        { attrs: { id: "wrapper" } },
+        [
+          _c("Sidebar"),
           _vm._v(" "),
           _c(
-            "button",
-            {
-              staticClass: "btn btn-primary btn-sm ml-auto",
-              on: { click: _vm.showNewCategoryModal }
-            },
-            [
-              _c("span", { staticClass: "fa fa-plus" }),
-              _vm._v("Create\n                Category\n            ")
-            ]
+            "div",
+            { attrs: { id: "content-wrapper" } },
+            [_c("router-view"), _vm._v(" "), _c("Footer")],
+            1
           )
-        ]),
-        _vm._v(" "),
-        _c("div", { staticClass: "card-body" }, [
-          _c("table", { staticClass: "table" }, [
-            _vm._m(1),
-            _vm._v(" "),
-            _c(
-              "tbody",
-              _vm._l(_vm.categories, function(category, index) {
-                return _c("tr", { key: index }, [
-                  _c("td", [_vm._v(_vm._s(index + 1))]),
-                  _vm._v(" "),
-                  _c("td", [_vm._v(_vm._s(category.name))]),
-                  _vm._v(" "),
-                  _c("td", [
-                    _c("img", {
-                      staticClass: "table-image",
-                      attrs: {
-                        src:
-                          _vm.$store.state.serverPath +
-                          "/storage/" +
-                          category.image,
-                        alt: category.name
-                      }
-                    })
-                  ]),
-                  _vm._v(" "),
-                  _c("td", [
-                    _c(
-                      "button",
-                      {
-                        staticClass: "btn btn-primary btn-sm",
-                        on: {
-                          click: function($event) {
-                            return _vm.editCategoryModal(category)
-                          }
-                        }
-                      },
-                      [_c("span", { staticClass: "fa fa-edit" })]
-                    ),
-                    _vm._v(" "),
-                    _c(
-                      "button",
-                      {
-                        staticClass: "btn btn-danger btn-sm",
-                        on: {
-                          click: function($event) {
-                            return _vm.deleteCategory(category)
-                          }
-                        }
-                      },
-                      [_c("span", { staticClass: "fa fa-trash" })]
-                    )
-                  ])
-                ])
-              }),
-              0
-            )
-          ])
-        ])
-      ]),
-      _vm._v(" "),
-      _c(
-        "b-modal",
-        {
-          ref: "newCategoryModal",
-          attrs: { "hide-footer": "", title: "Add New Category" }
-        },
-        [
-          _c("div", { staticClass: "d-block" }, [
-            _c(
-              "form",
-              {
-                attrs: { action: "" },
-                on: {
-                  submit: function($event) {
-                    $event.preventDefault()
-                    return _vm.createCategory($event)
-                  }
-                }
-              },
-              [
-                _c("div", { staticClass: "form-group" }, [
-                  _c("label", { attrs: { for: "name" } }, [
-                    _vm._v("Enter Name")
-                  ]),
-                  _vm._v(" "),
-                  _c("input", {
-                    directives: [
-                      {
-                        name: "model",
-                        rawName: "v-model",
-                        value: _vm.categoryData.name,
-                        expression: "categoryData.name"
-                      }
-                    ],
-                    staticClass: "form-control",
-                    attrs: {
-                      type: "text",
-                      id: "name",
-                      placeholder: "Enter Category Name..."
-                    },
-                    domProps: { value: _vm.categoryData.name },
-                    on: {
-                      input: function($event) {
-                        if ($event.target.composing) {
-                          return
-                        }
-                        _vm.$set(_vm.categoryData, "name", $event.target.value)
-                      }
-                    }
-                  }),
-                  _vm._v(" "),
-                  _vm.errors.name
-                    ? _c("div", { staticClass: "invalid-feedback" }, [
-                        _vm._v(
-                          "\n                        " +
-                            _vm._s(_vm.errors.name[0]) +
-                            "\n                    "
-                        )
-                      ])
-                    : _vm._e()
-                ]),
-                _vm._v(" "),
-                _c("div", { staticClass: "form-group" }, [
-                  _c("label", { attrs: { for: "image" } }, [
-                    _vm._v("Choose an image")
-                  ]),
-                  _vm._v(" "),
-                  _vm.categoryData.image
-                    ? _c("div", [
-                        _c("img", {
-                          ref: "newCategoryImageDisplay",
-                          staticClass: "w-150px",
-                          attrs: { src: "" }
-                        })
-                      ])
-                    : _vm._e(),
-                  _vm._v(" "),
-                  _c("input", {
-                    ref: "newCategoryImage",
-                    staticClass: "form-control",
-                    attrs: { type: "file", id: "image" },
-                    on: { change: _vm.attachImage }
-                  }),
-                  _vm._v(" "),
-                  _vm.errors.image
-                    ? _c("div", { staticClass: "invalid-feedback" }, [
-                        _vm._v(
-                          "\n                        " +
-                            _vm._s(_vm.errors.image[0]) +
-                            "\n                    "
-                        )
-                      ])
-                    : _vm._e()
-                ]),
-                _vm._v(" "),
-                _c("hr"),
-                _vm._v(" "),
-                _c("div", { staticClass: "text-right" }, [
-                  _c(
-                    "button",
-                    {
-                      staticClass: "btn btn-default",
-                      attrs: { type: "button" },
-                      on: { click: _vm.hideNewCategoryModal }
-                    },
-                    [_vm._v("Cancel")]
-                  ),
-                  _vm._v(" "),
-                  _c(
-                    "button",
-                    {
-                      staticClass: "btn btn-primary",
-                      attrs: { type: "submit" }
-                    },
-                    [_c("span", { staticClass: "fa fa-check" }), _vm._v("Save")]
-                  )
-                ])
-              ]
-            )
-          ])
-        ]
-      ),
-      _vm._v(" "),
-      _c(
-        "b-modal",
-        {
-          ref: "editCategoryModal",
-          attrs: { "hide-footer": "", title: "Update Category" }
-        },
-        [
-          _c("div", { staticClass: "d-block" }, [
-            _c(
-              "form",
-              {
-                attrs: { action: "" },
-                on: {
-                  submit: function($event) {
-                    $event.preventDefault()
-                    return _vm.updateCategory($event)
-                  }
-                }
-              },
-              [
-                _c("div", { staticClass: "form-group" }, [
-                  _c("label", { attrs: { for: "edit_name" } }, [
-                    _vm._v("Enter Name")
-                  ]),
-                  _vm._v(" "),
-                  _c("input", {
-                    directives: [
-                      {
-                        name: "model",
-                        rawName: "v-model",
-                        value: _vm.editCategoryData.name,
-                        expression: "editCategoryData.name"
-                      }
-                    ],
-                    staticClass: "form-control",
-                    attrs: {
-                      type: "text",
-                      id: "edit_name",
-                      placeholder: "Enter Category Name..."
-                    },
-                    domProps: { value: _vm.editCategoryData.name },
-                    on: {
-                      input: function($event) {
-                        if ($event.target.composing) {
-                          return
-                        }
-                        _vm.$set(
-                          _vm.editCategoryData,
-                          "name",
-                          $event.target.value
-                        )
-                      }
-                    }
-                  }),
-                  _vm._v(" "),
-                  _vm.errors.name
-                    ? _c("div", { staticClass: "invalid-feedback" }, [
-                        _vm._v(
-                          "\n                        " +
-                            _vm._s(_vm.errors.name[0]) +
-                            "\n                    "
-                        )
-                      ])
-                    : _vm._e()
-                ]),
-                _vm._v(" "),
-                _c("div", { staticClass: "form-group" }, [
-                  _c("label", { attrs: { for: "edit_image" } }, [
-                    _vm._v("Choose an image")
-                  ]),
-                  _vm._v(" "),
-                  _c("div", [
-                    _c("img", {
-                      ref: "editCategoryImageDisplay",
-                      staticClass: "w-150px",
-                      attrs: {
-                        src:
-                          _vm.$store.state.serverPath +
-                          "/storage/" +
-                          _vm.editCategoryData.image,
-                        alt: ""
-                      }
-                    })
-                  ]),
-                  _vm._v(" "),
-                  _c("input", {
-                    ref: "editCategoryImage",
-                    staticClass: "form-control",
-                    attrs: { type: "file", id: "edit_image" },
-                    on: { change: _vm.editAttachImage }
-                  }),
-                  _vm._v(" "),
-                  _vm.errors.image
-                    ? _c("div", { staticClass: "invalid-feedback" }, [
-                        _vm._v(_vm._s(_vm.errors.image[0]))
-                      ])
-                    : _vm._e()
-                ]),
-                _vm._v(" "),
-                _c("hr"),
-                _vm._v(" "),
-                _c("div", { staticClass: "text-right" }, [
-                  _c(
-                    "button",
-                    {
-                      staticClass: "btn btn-default",
-                      attrs: { type: "button" },
-                      on: { click: _vm.hideEditCategoryModal }
-                    },
-                    [_vm._v("Cancel")]
-                  ),
-                  _vm._v(" "),
-                  _c(
-                    "button",
-                    {
-                      staticClass: "btn btn-primary",
-                      attrs: { type: "submit" }
-                    },
-                    [
-                      _c("span", { staticClass: "fa fa-check" }),
-                      _vm._v("Update")
-                    ]
-                  )
-                ])
-              ]
-            )
-          ])
-        ]
+        ],
+        1
       )
     ],
     1
   )
 }
-var staticRenderFns = [
-  function() {
-    var _vm = this
-    var _h = _vm.$createElement
-    var _c = _vm._self._c || _h
-    return _c("span", [
-      _c("i", { staticClass: "fas fa-chart-area" }),
-      _vm._v(" Categories Management\n            ")
-    ])
-  },
-  function() {
-    var _vm = this
-    var _h = _vm.$createElement
-    var _c = _vm._self._c || _h
-    return _c("thead", [
-      _c("tr", [
-        _c("td", [_vm._v("#")]),
-        _vm._v(" "),
-        _c("td", [_vm._v("Name")]),
-        _vm._v(" "),
-        _c("td", [_vm._v("Image")]),
-        _vm._v(" "),
-        _c("td", [_vm._v("Action")])
-      ])
-    ])
-  }
-]
-render._withStripped = true
-
-
-
-/***/ }),
-
-/***/ "./node_modules/vue-loader/lib/loaders/templateLoader.js?!./node_modules/vue-loader/lib/index.js?!./resources/js/views/Welcome.vue?vue&type=template&id=1ae8ae93&scoped=true&":
-/*!*****************************************************************************************************************************************************************************************************************!*\
-  !*** ./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/vue-loader/lib??vue-loader-options!./resources/js/views/Welcome.vue?vue&type=template&id=1ae8ae93&scoped=true& ***!
-  \*****************************************************************************************************************************************************************************************************************/
-/*! exports provided: render, staticRenderFns */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "render", function() { return render; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "staticRenderFns", function() { return staticRenderFns; });
-var render = function() {
-  var _vm = this
-  var _h = _vm.$createElement
-  var _c = _vm._self._c || _h
-  return _c("div", { staticClass: "container-fluid" }, [
-    _c("ol", { staticClass: "breadcrumb" }, [
-      _c(
-        "li",
-        { staticClass: "breadcrumb-item" },
-        [_c("router-link", { attrs: { to: "/" } }, [_vm._v("Dashboard")])],
-        1
-      ),
-      _vm._v(" "),
-      _c("li", { staticClass: "breadcrumb-item active" }, [_vm._v("Overview")])
-    ]),
-    _vm._v(" "),
-    _vm._m(0)
-  ])
-}
-var staticRenderFns = [
-  function() {
-    var _vm = this
-    var _h = _vm.$createElement
-    var _c = _vm._self._c || _h
-    return _c("div", { staticClass: "row" }, [
-      _c("div", { staticClass: "col-xl-3 col-sm-6 mb-3" }, [
-        _c(
-          "div",
-          { staticClass: "card text-white bg-primary o-hidden h-100" },
-          [
-            _c("div", { staticClass: "card-body" }, [
-              _c("div", { staticClass: "card-body-icon" }, [
-                _c("i", { staticClass: "fas fa-fw fa-comments" })
-              ]),
-              _vm._v(" "),
-              _c("div", { staticClass: "mr-5" }, [_vm._v("26 New Messages!")])
-            ]),
-            _vm._v(" "),
-            _c(
-              "a",
-              {
-                staticClass: "card-footer text-white clearfix small z-1",
-                attrs: { href: "#" }
-              },
-              [
-                _c("span", { staticClass: "float-left" }, [
-                  _vm._v("View Details")
-                ]),
-                _vm._v(" "),
-                _c("span", { staticClass: "float-right" }, [
-                  _c("i", { staticClass: "fas fa-angle-right" })
-                ])
-              ]
-            )
-          ]
-        )
-      ]),
-      _vm._v(" "),
-      _c("div", { staticClass: "col-xl-3 col-sm-6 mb-3" }, [
-        _c(
-          "div",
-          { staticClass: "card text-white bg-warning o-hidden h-100" },
-          [
-            _c("div", { staticClass: "card-body" }, [
-              _c("div", { staticClass: "card-body-icon" }, [
-                _c("i", { staticClass: "fas fa-fw fa-list" })
-              ]),
-              _vm._v(" "),
-              _c("div", { staticClass: "mr-5" }, [_vm._v("11 New Tasks!")])
-            ]),
-            _vm._v(" "),
-            _c(
-              "a",
-              {
-                staticClass: "card-footer text-white clearfix small z-1",
-                attrs: { href: "#" }
-              },
-              [
-                _c("span", { staticClass: "float-left" }, [
-                  _vm._v("View Details")
-                ]),
-                _vm._v(" "),
-                _c("span", { staticClass: "float-right" }, [
-                  _c("i", { staticClass: "fas fa-angle-right" })
-                ])
-              ]
-            )
-          ]
-        )
-      ]),
-      _vm._v(" "),
-      _c("div", { staticClass: "col-xl-3 col-sm-6 mb-3" }, [
-        _c(
-          "div",
-          { staticClass: "card text-white bg-success o-hidden h-100" },
-          [
-            _c("div", { staticClass: "card-body" }, [
-              _c("div", { staticClass: "card-body-icon" }, [
-                _c("i", { staticClass: "fas fa-fw fa-shopping-cart" })
-              ]),
-              _vm._v(" "),
-              _c("div", { staticClass: "mr-5" }, [_vm._v("123 New Orders!")])
-            ]),
-            _vm._v(" "),
-            _c(
-              "a",
-              {
-                staticClass: "card-footer text-white clearfix small z-1",
-                attrs: { href: "#" }
-              },
-              [
-                _c("span", { staticClass: "float-left" }, [
-                  _vm._v("View Details")
-                ]),
-                _vm._v(" "),
-                _c("span", { staticClass: "float-right" }, [
-                  _c("i", { staticClass: "fas fa-angle-right" })
-                ])
-              ]
-            )
-          ]
-        )
-      ]),
-      _vm._v(" "),
-      _c("div", { staticClass: "col-xl-3 col-sm-6 mb-3" }, [
-        _c("div", { staticClass: "card text-white bg-danger o-hidden h-100" }, [
-          _c("div", { staticClass: "card-body" }, [
-            _c("div", { staticClass: "card-body-icon" }, [
-              _c("i", { staticClass: "fas fa-fw fa-life-ring" })
-            ]),
-            _vm._v(" "),
-            _c("div", { staticClass: "mr-5" }, [_vm._v("13 New Tickets!")])
-          ]),
-          _vm._v(" "),
-          _c(
-            "a",
-            {
-              staticClass: "card-footer text-white clearfix small z-1",
-              attrs: { href: "#" }
-            },
-            [
-              _c("span", { staticClass: "float-left" }, [
-                _vm._v("View Details")
-              ]),
-              _vm._v(" "),
-              _c("span", { staticClass: "float-right" }, [
-                _c("i", { staticClass: "fas fa-angle-right" })
-              ])
-            ]
-          )
-        ])
-      ])
-    ])
-  }
-]
+var staticRenderFns = []
 render._withStripped = true
 
 
@@ -83938,6 +84285,58 @@ if (false) {} else {
 
 /***/ }),
 
+/***/ "./node_modules/vuejs-dialog/dist/vuejs-dialog-mixin.min.js":
+/*!******************************************************************!*\
+  !*** ./node_modules/vuejs-dialog/dist/vuejs-dialog-mixin.min.js ***!
+  \******************************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+!function(t,e){ true?module.exports=e():undefined}(window,function(){return function(t){var e={};function n(o){if(e[o])return e[o].exports;var i=e[o]={i:o,l:!1,exports:{}};return t[o].call(i.exports,i,i.exports,n),i.l=!0,i.exports}return n.m=t,n.c=e,n.d=function(t,e,o){n.o(t,e)||Object.defineProperty(t,e,{enumerable:!0,get:o})},n.r=function(t){"undefined"!=typeof Symbol&&Symbol.toStringTag&&Object.defineProperty(t,Symbol.toStringTag,{value:"Module"}),Object.defineProperty(t,"__esModule",{value:!0})},n.t=function(t,e){if(1&e&&(t=n(t)),8&e)return t;if(4&e&&"object"==typeof t&&t&&t.__esModule)return t;var o=Object.create(null);if(n.r(o),Object.defineProperty(o,"default",{enumerable:!0,value:t}),2&e&&"string"!=typeof t)for(var i in t)n.d(o,i,function(e){return t[e]}.bind(null,i));return o},n.n=function(t){var e=t&&t.__esModule?function(){return t.default}:function(){return t};return n.d(e,"a",e),e},n.o=function(t,e){return Object.prototype.hasOwnProperty.call(t,e)},n.p="/dist/",n(n.s=13)}({1:function(t,e,n){"use strict";Object.defineProperty(e,"__esModule",{value:!0});var o=e.DIALOG_TYPES={ALERT:"alert",CONFIRM:"confirm",PROMPT:"prompt"},i=e.CONFIRM_TYPES={BASIC:"basic",SOFT:"soft",HARD:"hard"};e.ANIMATION_TYPES={FADE:"dg-fade",ZOOM:"dg-zoom",BOUNCE:"dg-bounce"},e.CLASS_TYPES={MAIN_CONTENT:"mainContent",BODY:"body",TITLE:"title",FOOTER:"footer",OK_BTN:"okBtn",CANCEL_BTN:"cancelBtn"},e.DEFAULT_OPTIONS={html:!1,loader:!1,reverse:!1,backdropClose:!1,okText:"Continue",cancelText:"Close",view:null,type:i.BASIC,window:o.CONFIRM,message:"Proceed with the request?",clicksCount:3,animation:"zoom",customClass:"",verification:"continue",verificationHelp:'Type "[+:verification]" below to confirm',promptHelp:'Type in the box below and click "[+:okText]"'}},13:function(t,e,n){"use strict";Object.defineProperty(e,"__esModule",{value:!0});var o=n(1),i=s(n(14)),r=s(n(15));function s(t){return t&&t.__esModule?t:{default:t}}e.default={data:function(){return{input:"",loading:!1}},props:{options:{type:Object,required:!0}},computed:{loaderEnabled:function(){return!!this.options.loader},isHardConfirm:function(){return this.options.window===o.DIALOG_TYPES.CONFIRM&&this.options.type===o.CONFIRM_TYPES.HARD},isPrompt:function(){return this.options.window===o.DIALOG_TYPES.PROMPT},leftBtnComponent:function(){return!1===this.options.reverse?"cancel-btn":"ok-btn"},rightBtnComponent:function(){return!0===this.options.reverse?"cancel-btn":"ok-btn"},hardConfirmHelpText:function(){var t=this;return this.options.verificationHelp.replace(/\[\+:(\w+)]/g,function(e,n){return t.options[n]||e})},promptHelpText:function(){var t=this;return this.options.promptHelp.replace(/\[\+:(\w+)]/g,function(e,n){return t.options[n]||e})}},mounted:function(){this.isHardConfirm&&this.$refs.inputElem&&this.$refs.inputElem.focus()},methods:{clickRightBtn:function(){this.options.reverse?this.cancel():this.proceed(this.getDefaultData())},clickLeftBtn:function(){this.options.reverse?this.proceed(this.getDefaultData()):this.cancel()},submitDialogForm:function(){this.okBtnDisabled||this.proceed()},getDefaultData:function(){return this.isPrompt?this.input:null},proceed:function(){var t=arguments.length>0&&void 0!==arguments[0]?arguments[0]:null;this.loaderEnabled?(this.switchLoadingState(!0),this.options.promiseResolver({close:this.close,loading:this.switchLoadingState,data:t})):(this.options.promiseResolver({data:t}),this.close())},cancel:function(){!0!==this.loading&&this.close()},switchLoadingState:function(){var t=arguments.length>0&&void 0!==arguments[0]?arguments[0]:null;null===t&&(t=!this.loading),this.loading=!!t},close:function(){this.$emit("close")}},mixins:[i.default,r.default]}},14:function(t,e,n){"use strict";Object.defineProperty(e,"__esModule",{value:!0});var o="function"==typeof Symbol&&"symbol"==typeof Symbol.iterator?function(t){return typeof t}:function(t){return t&&"function"==typeof Symbol&&t.constructor===Symbol&&t!==Symbol.prototype?"symbol":typeof t};e.default={computed:{messageHasTitle:function(){var t=this.options.message;return"object"===(void 0===t?"undefined":o(t))&&null!==t&&t.title},messageTitle:function(){return this.messageHasTitle?this.options.message.title:null},messageBody:function(){var t=this.options.message;return"string"==typeof t?t:t.body||""}}}},15:function(t,e,n){"use strict";Object.defineProperty(e,"__esModule",{value:!0});var o=n(1);e.default={computed:{cancelBtnDisabled:function(){return this.options.window===o.DIALOG_TYPES.ALERT},okBtnDisabled:function(){return this.options.window===o.DIALOG_TYPES.CONFIRM&&this.options.type===o.CONFIRM_TYPES.HARD&&this.input!==this.options.verification},leftBtnEnabled:function(){return!1===this.cancelBtnDisabled||!0===this.options.reverse},rightBtnEnabled:function(){return!1===this.cancelBtnDisabled||!1===this.options.reverse},leftBtnFocus:function(){return!this.isHardConfirm&&!0===this.options.reverse},rightBtnFocus:function(){return!this.isHardConfirm&&!1===this.options.reverse},leftBtnText:function(){return this.options.reverse?this.options.okText:this.options.cancelText},rightBtnText:function(){return this.options.reverse?this.options.cancelText:this.options.okText}}}}})});
+
+/***/ }),
+
+/***/ "./node_modules/vuejs-dialog/dist/vuejs-dialog.min.css":
+/*!*************************************************************!*\
+  !*** ./node_modules/vuejs-dialog/dist/vuejs-dialog.min.css ***!
+  \*************************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+
+var content = __webpack_require__(/*! !../../css-loader??ref--6-1!../../postcss-loader/src??ref--6-2!./vuejs-dialog.min.css */ "./node_modules/css-loader/index.js?!./node_modules/postcss-loader/src/index.js?!./node_modules/vuejs-dialog/dist/vuejs-dialog.min.css");
+
+if(typeof content === 'string') content = [[module.i, content, '']];
+
+var transform;
+var insertInto;
+
+
+
+var options = {"hmr":true}
+
+options.transform = transform
+options.insertInto = undefined;
+
+var update = __webpack_require__(/*! ../../style-loader/lib/addStyles.js */ "./node_modules/style-loader/lib/addStyles.js")(content, options);
+
+if(content.locals) module.exports = content.locals;
+
+if(false) {}
+
+/***/ }),
+
+/***/ "./node_modules/vuejs-dialog/dist/vuejs-dialog.min.js":
+/*!************************************************************!*\
+  !*** ./node_modules/vuejs-dialog/dist/vuejs-dialog.min.js ***!
+  \************************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+!function(t,e){ true?module.exports=e():undefined}(window,function(){return function(t){var e={};function n(o){if(e[o])return e[o].exports;var i=e[o]={i:o,l:!1,exports:{}};return t[o].call(i.exports,i,i.exports,n),i.l=!0,i.exports}return n.m=t,n.c=e,n.d=function(t,e,o){n.o(t,e)||Object.defineProperty(t,e,{enumerable:!0,get:o})},n.r=function(t){"undefined"!=typeof Symbol&&Symbol.toStringTag&&Object.defineProperty(t,Symbol.toStringTag,{value:"Module"}),Object.defineProperty(t,"__esModule",{value:!0})},n.t=function(t,e){if(1&e&&(t=n(t)),8&e)return t;if(4&e&&"object"==typeof t&&t&&t.__esModule)return t;var o=Object.create(null);if(n.r(o),Object.defineProperty(o,"default",{enumerable:!0,value:t}),2&e&&"string"!=typeof t)for(var i in t)n.d(o,i,function(e){return t[e]}.bind(null,i));return o},n.n=function(t){var e=t&&t.__esModule?function(){return t.default}:function(){return t};return n.d(e,"a",e),e},n.o=function(t,e){return Object.prototype.hasOwnProperty.call(t,e)},n.p="/dist/",n(n.s=23)}([function(t,e,n){"use strict";function o(t,e,n,o,i,r,s,c){var a,u="function"==typeof t?t.options:t;if(e&&(u.render=e,u.staticRenderFns=n,u._compiled=!0),o&&(u.functional=!0),r&&(u._scopeId="data-v-"+r),s?(a=function(t){(t=t||this.$vnode&&this.$vnode.ssrContext||this.parent&&this.parent.$vnode&&this.parent.$vnode.ssrContext)||"undefined"==typeof __VUE_SSR_CONTEXT__||(t=__VUE_SSR_CONTEXT__),i&&i.call(this,t),t&&t._registeredComponents&&t._registeredComponents.add(s)},u._ssrRegister=a):i&&(a=c?function(){i.call(this,this.$root.$options.shadowRoot)}:i),a)if(u.functional){u._injectStyles=a;var l=u.render;u.render=function(t,e){return a.call(e),l(t,e)}}else{var f=u.beforeCreate;u.beforeCreate=f?[].concat(f,a):[a]}return{exports:t,options:u}}n.d(e,"a",function(){return o})},function(t,e,n){"use strict";Object.defineProperty(e,"__esModule",{value:!0});var o=e.DIALOG_TYPES={ALERT:"alert",CONFIRM:"confirm",PROMPT:"prompt"},i=e.CONFIRM_TYPES={BASIC:"basic",SOFT:"soft",HARD:"hard"};e.ANIMATION_TYPES={FADE:"dg-fade",ZOOM:"dg-zoom",BOUNCE:"dg-bounce"},e.CLASS_TYPES={MAIN_CONTENT:"mainContent",BODY:"body",TITLE:"title",FOOTER:"footer",OK_BTN:"okBtn",CANCEL_BTN:"cancelBtn"},e.DEFAULT_OPTIONS={html:!1,loader:!1,reverse:!1,backdropClose:!1,okText:"Continue",cancelText:"Close",view:null,type:i.BASIC,window:o.CONFIRM,message:"Proceed with the request?",clicksCount:3,animation:"zoom",customClass:"",verification:"continue",verificationHelp:'Type "[+:verification]" below to confirm',promptHelp:'Type in the box below and click "[+:okText]"'}},function(t,e,n){"use strict";n.r(e);var o=n(3),i=n.n(o);for(var r in o)"default"!==r&&function(t){n.d(e,t,function(){return o[t]})}(r);e.default=i.a},function(t,e,n){"use strict";Object.defineProperty(e,"__esModule",{value:!0});var o=function(t){return t&&t.__esModule?t:{default:t}}(n(29)),i=n(16);e.default={data:function(){return{dialogsARR:[],registeredViews:{}}},created:function(){document.addEventListener("keydown",this.escapeKeyListener)},destroyed:function(){document.removeEventListener("keydown",this.escapeKeyListener)},watch:{dialogsARR:{handler:function(t){var e=document.getElementsByTagName("body")[0];e&&(t.length&&!e.classList.contains("dg-open")?e.classList.add("dg-open"):!t.length&&e&&e.classList.contains("dg-open")&&e.classList.remove("dg-open"))}}},methods:{commit:function(t){t.escapeKeyClose=!1,this.dialogsARR.push(t)},forceCloseAll:function(){var t=this;this.dialogsARR.forEach(function(e,n){return t.$delete(t.dialogsARR,n)})},destroyDialog:function(t){var e=(0,i.firstIndex)(this.dialogsARR,t,"id");-1!==e&&this.$delete(this.dialogsARR,e)},escapeKeyListener:function(t){if(27===t.keyCode){var e=-1+this.dialogsARR.length;e>-1&&this.$set(this.dialogsARR[e],"escapeKeyClose",!0)}}},components:{DialogWindow:o.default}}},function(t,e,n){"use strict";n.r(e);var o=n(5),i=n.n(o);for(var r in o)"default"!==r&&function(t){n.d(e,t,function(){return o[t]})}(r);e.default=i.a},function(t,e,n){"use strict";Object.defineProperty(e,"__esModule",{value:!0});var o=function(t){return t&&t.__esModule?t:{default:t}}(n(30)),i=n(1);e.default={data:function(){return{show:!0,closed:!1,endedAnimations:[]}},props:{options:{type:Object,required:!0},escapeKeyClose:{type:Boolean,default:!1},registeredViews:{type:Object,default:function(){return{}}}},watch:{escapeKeyClose:function(t){!0===t&&(this.cancelBtnDisabled?this.proceed():this.cancel())}},computed:{animation:function(){var t=this.options.animation.toUpperCase();return i.ANIMATION_TYPES.hasOwnProperty(t)?i.ANIMATION_TYPES[t]:i.ANIMATION_TYPES.ZOOM},loaderEnabled:function(){return!!this.options.loader},dialogView:function(){return(this.options.view?this.registeredViews[this.options.view]:null)||o.default},isHardConfirm:function(){return this.options.window===i.DIALOG_TYPES.CONFIRM&&this.options.type===i.CONFIRM_TYPES.HARD},isPrompt:function(){return this.options.window===i.DIALOG_TYPES.PROMPT}},methods:{closeAtOutsideClick:function(){!0===this.options.backdropClose&&(this.cancelBtnDisabled?this.proceed():this.cancel())},proceed:function(){this.loaderEnabled?(this.switchLoadingState(!0),this.options.promiseResolver({close:this.close,loading:this.switchLoadingState})):(this.options.promiseResolver(!0),this.close())},cancel:function(){!0!==this.loading&&this.close()},close:function(){this.show=!1,this.closed=!0},animationEnded:function(t){this.endedAnimations.push(t),-1!==this.endedAnimations.indexOf("backdrop")&&-1!==this.endedAnimations.indexOf("content")&&(this.options.promiseRejecter(!1),this.$emit("close",this.options.id))}},beforeDestroy:function(){!1===this.closed&&(this.cancelBtnDisabled?this.proceed():this.cancel())}}},function(t,e,n){"use strict";n.r(e);var o=n(7),i=n.n(o);for(var r in o)"default"!==r&&function(t){n.d(e,t,function(){return o[t]})}(r);e.default=i.a},function(t,e,n){"use strict";Object.defineProperty(e,"__esModule",{value:!0});var o=s(n(13)),i=s(n(31)),r=s(n(32));function s(t){return t&&t.__esModule?t:{default:t}}e.default={data:function(){return{}},mixins:[o.default],mounted:function(){this.isHardConfirm&&this.$refs.inputElem&&this.$refs.inputElem.focus()},components:{CancelBtn:r.default,OkBtn:i.default}}},function(t,e,n){"use strict";n.r(e);var o=n(9),i=n.n(o);for(var r in o)"default"!==r&&function(t){n.d(e,t,function(){return o[t]})}(r);e.default=i.a},function(t,e,n){"use strict";Object.defineProperty(e,"__esModule",{value:!0});var o=function(t){return t&&t.__esModule?t:{default:t}}(n(36)),i=n(1);e.default={data:function(){return{clicks_count:0}},props:{enabled:{required:!1,type:Boolean,default:!0},options:{required:!0,type:Object},focus:{required:!1,type:Boolean,default:!1},loading:{required:!1,type:Boolean,default:!1}},mounted:function(){this.focus&&this.$refs.btn.focus()},computed:{soft_confirm:function(){return this.options.type===i.CONFIRM_TYPES.SOFT},hard_confirm:function(){return this.options.type===i.CONFIRM_TYPES.HARD},is_disabled:function(){return this.$parent.okBtnDisabled},clicks_remaining:function(){return Math.max(this.options.clicksCount-this.clicks_count,0)}},methods:{proceed:function(){!this.is_disabled&&this.validateProceed()&&this.$emit("click")},validateProceed:function(){switch(this.options.type){case i.CONFIRM_TYPES.SOFT:return this.clicks_count++,this.clicks_count>=this.options.clicksCount;case i.CONFIRM_TYPES.BASIC:default:return!0}}},components:{BtnLoader:o.default}}},function(t,e,n){"use strict";n.r(e);var o=n(11),i=n.n(o);for(var r in o)"default"!==r&&function(t){n.d(e,t,function(){return o[t]})}(r);e.default=i.a},function(t,e,n){"use strict";Object.defineProperty(e,"__esModule",{value:!0}),e.default={props:{enabled:{required:!1,type:Boolean,default:!0},options:{required:!0,type:Object},focus:{required:!1,type:Boolean,default:!1},loading:{required:!1,type:Boolean,default:!1}},mounted:function(){this.focus&&this.$refs.btn.focus()}}},function(t,e,n){},function(t,e,n){"use strict";Object.defineProperty(e,"__esModule",{value:!0});var o=n(1),i=s(n(14)),r=s(n(15));function s(t){return t&&t.__esModule?t:{default:t}}e.default={data:function(){return{input:"",loading:!1}},props:{options:{type:Object,required:!0}},computed:{loaderEnabled:function(){return!!this.options.loader},isHardConfirm:function(){return this.options.window===o.DIALOG_TYPES.CONFIRM&&this.options.type===o.CONFIRM_TYPES.HARD},isPrompt:function(){return this.options.window===o.DIALOG_TYPES.PROMPT},leftBtnComponent:function(){return!1===this.options.reverse?"cancel-btn":"ok-btn"},rightBtnComponent:function(){return!0===this.options.reverse?"cancel-btn":"ok-btn"},hardConfirmHelpText:function(){var t=this;return this.options.verificationHelp.replace(/\[\+:(\w+)]/g,function(e,n){return t.options[n]||e})},promptHelpText:function(){var t=this;return this.options.promptHelp.replace(/\[\+:(\w+)]/g,function(e,n){return t.options[n]||e})}},mounted:function(){this.isHardConfirm&&this.$refs.inputElem&&this.$refs.inputElem.focus()},methods:{clickRightBtn:function(){this.options.reverse?this.cancel():this.proceed(this.getDefaultData())},clickLeftBtn:function(){this.options.reverse?this.proceed(this.getDefaultData()):this.cancel()},submitDialogForm:function(){this.okBtnDisabled||this.proceed()},getDefaultData:function(){return this.isPrompt?this.input:null},proceed:function(){var t=arguments.length>0&&void 0!==arguments[0]?arguments[0]:null;this.loaderEnabled?(this.switchLoadingState(!0),this.options.promiseResolver({close:this.close,loading:this.switchLoadingState,data:t})):(this.options.promiseResolver({data:t}),this.close())},cancel:function(){!0!==this.loading&&this.close()},switchLoadingState:function(){var t=arguments.length>0&&void 0!==arguments[0]?arguments[0]:null;null===t&&(t=!this.loading),this.loading=!!t},close:function(){this.$emit("close")}},mixins:[i.default,r.default]}},function(t,e,n){"use strict";Object.defineProperty(e,"__esModule",{value:!0});var o="function"==typeof Symbol&&"symbol"==typeof Symbol.iterator?function(t){return typeof t}:function(t){return t&&"function"==typeof Symbol&&t.constructor===Symbol&&t!==Symbol.prototype?"symbol":typeof t};e.default={computed:{messageHasTitle:function(){var t=this.options.message;return"object"===(void 0===t?"undefined":o(t))&&null!==t&&t.title},messageTitle:function(){return this.messageHasTitle?this.options.message.title:null},messageBody:function(){var t=this.options.message;return"string"==typeof t?t:t.body||""}}}},function(t,e,n){"use strict";Object.defineProperty(e,"__esModule",{value:!0});var o=n(1);e.default={computed:{cancelBtnDisabled:function(){return this.options.window===o.DIALOG_TYPES.ALERT},okBtnDisabled:function(){return this.options.window===o.DIALOG_TYPES.CONFIRM&&this.options.type===o.CONFIRM_TYPES.HARD&&this.input!==this.options.verification},leftBtnEnabled:function(){return!1===this.cancelBtnDisabled||!0===this.options.reverse},rightBtnEnabled:function(){return!1===this.cancelBtnDisabled||!1===this.options.reverse},leftBtnFocus:function(){return!this.isHardConfirm&&!0===this.options.reverse},rightBtnFocus:function(){return!this.isHardConfirm&&!1===this.options.reverse},leftBtnText:function(){return this.options.reverse?this.options.okText:this.options.cancelText},rightBtnText:function(){return this.options.reverse?this.options.cancelText:this.options.okText}}}},function(t,e,n){"use strict";Object.defineProperty(e,"__esModule",{value:!0}),e.getElem=function(t){return arguments.length>1&&void 0!==arguments[1]&&arguments[1]?document.querySelectorAll(t):document.querySelector(t)};e.noop=function(){};var o=e.cloneObj=function(t){return Object.assign({},t)};e.mergeObjs=function(){for(var t=[],e=0;e<arguments.length;e++)t.push(arguments[e]);return Object.assign.apply(Object,function(t){if(Array.isArray(t)){for(var e=0,n=Array(t.length);e<t.length;e++)n[e]=t[e];return n}return Array.from(t)}(t.map(o)))},e.clickNode=function(t){if(document.createEvent){var e=document.createEvent("MouseEvents");e.initEvent("click",!0,!1),t.dispatchEvent(e)}else document.createEventObject?t.fireEvent("onclick"):"function"==typeof t.onclick&&t.onclick()},e.firstIndex=function(t,e,n){var o=void 0,i=t.length;for(o=0;o<i;o++)if(t[o][n]===e)return o;return-1}},function(t,e,n){"use strict";var o=function(){var t=this,e=t.$createElement,n=t._self._c||e;return n("div",t._l(t.dialogsARR,function(e){return n("dialog-window",{key:e.id,attrs:{options:e,escapeKeyClose:e.escapeKeyClose,registeredViews:t.registeredViews},on:{close:t.destroyDialog}})}))},i=[];n.d(e,"a",function(){return o}),n.d(e,"b",function(){return i})},function(t,e,n){"use strict";var o=function(){var t=this,e=t.$createElement,n=t._self._c||e;return n("div",{class:t.options.customClass},[n("transition",{attrs:{name:"dg-backdrop",appear:""},on:{"after-leave":function(e){t.animationEnded("backdrop")}}},[t.show?n("div",{staticClass:"dg-backdrop"}):t._e()]),t._v(" "),n("transition",{attrs:{name:t.animation,appear:""},on:{"after-leave":function(e){t.animationEnded("content")}}},[t.show?n("div",{class:["dg-container",{"dg-container--has-input":t.isHardConfirm||t.isPrompt}],on:{click:t.closeAtOutsideClick}},[n("div",{staticClass:"dg-content-cont dg-content-cont--floating"},[n("div",{staticClass:"dg-main-content",on:{click:function(t){t.stopPropagation()}}},[n(t.dialogView,{tag:"component",attrs:{options:t.options},on:{close:t.close}})],1)])]):t._e()])],1)},i=[];n.d(e,"a",function(){return o}),n.d(e,"b",function(){return i})},function(t,e,n){"use strict";var o=function(){var t=this,e=t.$createElement,n=t._self._c||e;return n("div",{staticClass:"dg-view-wrapper"},[n("div",{class:["dg-content-body",{"dg-content-body--has-title":t.messageHasTitle}]},[t.messageHasTitle?[t.options.html?n("h6",{staticClass:"dg-title",domProps:{innerHTML:t._s(t.messageTitle)}}):n("h6",{staticClass:"dg-title"},[t._v(t._s(t.messageTitle))])]:t._e(),t._v(" "),t.options.html?n("div",{staticClass:"dg-content",domProps:{innerHTML:t._s(t.messageBody)}}):n("div",{staticClass:"dg-content"},[t._v(t._s(t.messageBody))]),t._v(" "),t.isHardConfirm||t.isPrompt?n("form",{staticClass:"dg-form",attrs:{autocomplete:"off"},on:{submit:function(e){return e.preventDefault(),t.submitDialogForm(e)}}},[n("label",{staticStyle:{"font-size":"13px"},attrs:{for:"dg-input-elem"}},[t._v(t._s(t.isPrompt?t.promptHelpText:t.hardConfirmHelpText))]),t._v(" "),n("input",{directives:[{name:"model",rawName:"v-model",value:t.input,expression:"input"}],ref:"inputElem",staticStyle:{width:"100%","margin-top":"10px",padding:"5px 15px","font-size":"16px","border-radius":"4px",border:"2px solid #eee"},attrs:{type:"text",placeholder:t.isPrompt?"":t.options.verification,autocomplete:"off",id:"dg-input-elem"},domProps:{value:t.input},on:{input:function(e){e.target.composing||(t.input=e.target.value)}}})]):t._e()],2),t._v(" "),n("div",{staticClass:"dg-content-footer"},[n(t.leftBtnComponent,{tag:"button",attrs:{loading:t.loading,enabled:t.leftBtnEnabled,options:t.options,focus:t.leftBtnFocus},on:{click:function(e){t.clickLeftBtn()}}},[t.options.html?n("span",{domProps:{innerHTML:t._s(t.leftBtnText)}}):n("span",[t._v(t._s(t.leftBtnText))])]),t._v(" "),n(t.rightBtnComponent,{tag:"button",attrs:{loading:t.loading,enabled:t.rightBtnEnabled,options:t.options,focus:t.rightBtnFocus},on:{click:function(e){t.clickRightBtn()}}},[t.options.html?n("span",{domProps:{innerHTML:t._s(t.rightBtnText)}}):n("span",[t._v(t._s(t.rightBtnText))])]),t._v(" "),n("div",{staticClass:"dg-clear"})])])},i=[];n.d(e,"a",function(){return o}),n.d(e,"b",function(){return i})},function(t,e,n){"use strict";var o=function(){var t=this,e=t.$createElement,n=t._self._c||e;return t.enabled?n("button",{ref:"btn",class:["dg-btn","dg-btn--ok",{"dg-btn--loading":t.loading},{"dg-pull-right":!t.options.reverse}],attrs:{disabled:t.is_disabled},on:{click:function(e){e.preventDefault(),t.proceed()}}},[n("span",{staticClass:"dg-btn-content"},[t._t("default"),t._v(" "),t.soft_confirm?n("span",[t._v("("+t._s(t.clicks_remaining)+")")]):t._e()],2),t._v(" "),t.loading?n("btn-loader",{tag:"span"}):t._e()]):t._e()},i=[];n.d(e,"a",function(){return o}),n.d(e,"b",function(){return i})},function(t,e,n){"use strict";var o=function(){var t=this,e=t.$createElement,n=t._self._c||e;return t.enabled?n("button",{ref:"btn",class:["dg-btn","dg-btn--cancel",{"dg-pull-right":t.options.reverse}],on:{click:function(e){e.preventDefault(),t.$emit("click")}}},[t._t("default")],2):t._e()},i=[];n.d(e,"a",function(){return o}),n.d(e,"b",function(){return i})},function(t,e){var n;n=function(){return this}();try{n=n||Function("return this")()||(0,eval)("this")}catch(t){"object"==typeof window&&(n=window)}t.exports=n},function(t,e,n){"use strict";Object.defineProperty(e,"__esModule",{value:!0});var o=a(n(24)),i=a(n(28)),r=n(1),s=a(n(35)),c=n(16);function a(t){return t&&t.__esModule?t:{default:t}}var u={},l=function(t){var e=arguments.length>1&&void 0!==arguments[1]?arguments[1]:{};this.Vue=t,this.mounted=!1,this.$root={},this.registeredViews={},this.globalOptions=(0,c.mergeObjs)(r.DEFAULT_OPTIONS,e)};l.prototype.mountIfNotMounted=function(){var t=this;!0!==this.mounted&&(this.$root=function(){var e=t.Vue.extend(i.default),n=document.createElement("div");document.querySelector("body").appendChild(n);var o=new e;return o.registeredViews=t.registeredComponents(),o.$mount(n)}(),this.mounted=!0)},l.prototype.registeredComponents=function(){return u},l.prototype.registerComponent=function(t,e){this.mounted&&this.destroy(),u[t]=e},l.prototype.destroy=function(){if(!0===this.mounted){this.$root.forceCloseAll();var t=this.$root.$el;this.$root.$destroy(),this.$root.$off(),t.remove(),this.mounted=!1}},l.prototype.alert=function(){var t=arguments.length>0&&void 0!==arguments[0]?arguments[0]:null,e=arguments.length>1&&void 0!==arguments[1]?arguments[1]:{};return t&&(e.message=t),this.open(r.DIALOG_TYPES.ALERT,e)},l.prototype.prompt=function(){var t=arguments.length>0&&void 0!==arguments[0]?arguments[0]:null,e=arguments.length>1&&void 0!==arguments[1]?arguments[1]:{};return t&&(e.message=t),this.open(r.DIALOG_TYPES.PROMPT,e)},l.prototype.confirm=function(){var t=arguments.length>0&&void 0!==arguments[0]?arguments[0]:null,e=arguments.length>1&&void 0!==arguments[1]?arguments[1]:{};return t&&(e.message=t),this.open(r.DIALOG_TYPES.CONFIRM,e)},l.prototype.open=function(t){var e=this,n=arguments.length>1&&void 0!==arguments[1]?arguments[1]:{};return this.mountIfNotMounted(),new o.default(function(o,i){n.id="dialog."+Date.now(),n.window=t,n.promiseResolver=o,n.promiseRejecter=i,e.$root.commit((0,c.mergeObjs)(e.globalOptions,n))})},l.install=function(t,e){var n=new s.default(t);t.directive("confirm",n.confirmDefinition),t.dialog=new l(t,e),Object.defineProperties(t.prototype,{$dialog:{get:function(){return t.dialog}}})},e.default=l},function(t,e,n){(function(e){!function(n){var o=setTimeout;function i(){}function r(t){if(!(this instanceof r))throw new TypeError("Promises must be constructed via new");if("function"!=typeof t)throw new TypeError("not a function");this._state=0,this._handled=!1,this._value=void 0,this._deferreds=[],l(t,this)}function s(t,e){for(;3===t._state;)t=t._value;0!==t._state?(t._handled=!0,r._immediateFn(function(){var n=1===t._state?e.onFulfilled:e.onRejected;if(null!==n){var o;try{o=n(t._value)}catch(t){return void a(e.promise,t)}c(e.promise,o)}else(1===t._state?c:a)(e.promise,t._value)})):t._deferreds.push(e)}function c(t,e){try{if(e===t)throw new TypeError("A promise cannot be resolved with itself.");if(e&&("object"==typeof e||"function"==typeof e)){var n=e.then;if(e instanceof r)return t._state=3,t._value=e,void u(t);if("function"==typeof n)return void l(function(t,e){return function(){t.apply(e,arguments)}}(n,e),t)}t._state=1,t._value=e,u(t)}catch(e){a(t,e)}}function a(t,e){t._state=2,t._value=e,u(t)}function u(t){2===t._state&&0===t._deferreds.length&&r._immediateFn(function(){t._handled||r._unhandledRejectionFn(t._value)});for(var e=0,n=t._deferreds.length;e<n;e++)s(t,t._deferreds[e]);t._deferreds=null}function l(t,e){var n=!1;try{t(function(t){n||(n=!0,c(e,t))},function(t){n||(n=!0,a(e,t))})}catch(t){if(n)return;n=!0,a(e,t)}}r.prototype.catch=function(t){return this.then(null,t)},r.prototype.then=function(t,e){var n=new this.constructor(i);return s(this,new function(t,e,n){this.onFulfilled="function"==typeof t?t:null,this.onRejected="function"==typeof e?e:null,this.promise=n}(t,e,n)),n},r.all=function(t){return new r(function(e,n){if(!t||void 0===t.length)throw new TypeError("Promise.all accepts an array");var o=Array.prototype.slice.call(t);if(0===o.length)return e([]);var i=o.length;function r(t,s){try{if(s&&("object"==typeof s||"function"==typeof s)){var c=s.then;if("function"==typeof c)return void c.call(s,function(e){r(t,e)},n)}o[t]=s,0==--i&&e(o)}catch(t){n(t)}}for(var s=0;s<o.length;s++)r(s,o[s])})},r.resolve=function(t){return t&&"object"==typeof t&&t.constructor===r?t:new r(function(e){e(t)})},r.reject=function(t){return new r(function(e,n){n(t)})},r.race=function(t){return new r(function(e,n){for(var o=0,i=t.length;o<i;o++)t[o].then(e,n)})},r._immediateFn="function"==typeof e&&function(t){e(t)}||function(t){o(t,0)},r._unhandledRejectionFn=function(t){"undefined"!=typeof console&&console&&console.warn("Possible Unhandled Promise Rejection:",t)},r._setImmediateFn=function(t){r._immediateFn=t},r._setUnhandledRejectionFn=function(t){r._unhandledRejectionFn=t},void 0!==t&&t.exports?t.exports=r:n.Promise||(n.Promise=r)}(this)}).call(this,n(25).setImmediate)},function(t,e,n){(function(t){var o=void 0!==t&&t||"undefined"!=typeof self&&self||window,i=Function.prototype.apply;function r(t,e){this._id=t,this._clearFn=e}e.setTimeout=function(){return new r(i.call(setTimeout,o,arguments),clearTimeout)},e.setInterval=function(){return new r(i.call(setInterval,o,arguments),clearInterval)},e.clearTimeout=e.clearInterval=function(t){t&&t.close()},r.prototype.unref=r.prototype.ref=function(){},r.prototype.close=function(){this._clearFn.call(o,this._id)},e.enroll=function(t,e){clearTimeout(t._idleTimeoutId),t._idleTimeout=e},e.unenroll=function(t){clearTimeout(t._idleTimeoutId),t._idleTimeout=-1},e._unrefActive=e.active=function(t){clearTimeout(t._idleTimeoutId);var e=t._idleTimeout;e>=0&&(t._idleTimeoutId=setTimeout(function(){t._onTimeout&&t._onTimeout()},e))},n(26),e.setImmediate="undefined"!=typeof self&&self.setImmediate||void 0!==t&&t.setImmediate||this&&this.setImmediate,e.clearImmediate="undefined"!=typeof self&&self.clearImmediate||void 0!==t&&t.clearImmediate||this&&this.clearImmediate}).call(this,n(22))},function(t,e,n){(function(t,e){!function(t,n){"use strict";if(!t.setImmediate){var o,i=1,r={},s=!1,c=t.document,a=Object.getPrototypeOf&&Object.getPrototypeOf(t);a=a&&a.setTimeout?a:t,"[object process]"==={}.toString.call(t.process)?o=function(t){e.nextTick(function(){l(t)})}:function(){if(t.postMessage&&!t.importScripts){var e=!0,n=t.onmessage;return t.onmessage=function(){e=!1},t.postMessage("","*"),t.onmessage=n,e}}()?function(){var e="setImmediate$"+Math.random()+"$",n=function(n){n.source===t&&"string"==typeof n.data&&0===n.data.indexOf(e)&&l(+n.data.slice(e.length))};t.addEventListener?t.addEventListener("message",n,!1):t.attachEvent("onmessage",n),o=function(n){t.postMessage(e+n,"*")}}():t.MessageChannel?function(){var t=new MessageChannel;t.port1.onmessage=function(t){l(t.data)},o=function(e){t.port2.postMessage(e)}}():c&&"onreadystatechange"in c.createElement("script")?function(){var t=c.documentElement;o=function(e){var n=c.createElement("script");n.onreadystatechange=function(){l(e),n.onreadystatechange=null,t.removeChild(n),n=null},t.appendChild(n)}}():o=function(t){setTimeout(l,0,t)},a.setImmediate=function(t){"function"!=typeof t&&(t=new Function(""+t));for(var e=new Array(arguments.length-1),n=0;n<e.length;n++)e[n]=arguments[n+1];var s={callback:t,args:e};return r[i]=s,o(i),i++},a.clearImmediate=u}function u(t){delete r[t]}function l(t){if(s)setTimeout(l,0,t);else{var e=r[t];if(e){s=!0;try{!function(t){var e=t.callback,o=t.args;switch(o.length){case 0:e();break;case 1:e(o[0]);break;case 2:e(o[0],o[1]);break;case 3:e(o[0],o[1],o[2]);break;default:e.apply(n,o)}}(e)}finally{u(t),s=!1}}}}}("undefined"==typeof self?void 0===t?this:t:self)}).call(this,n(22),n(27))},function(t,e){var n,o,i=t.exports={};function r(){throw new Error("setTimeout has not been defined")}function s(){throw new Error("clearTimeout has not been defined")}function c(t){if(n===setTimeout)return setTimeout(t,0);if((n===r||!n)&&setTimeout)return n=setTimeout,setTimeout(t,0);try{return n(t,0)}catch(e){try{return n.call(null,t,0)}catch(e){return n.call(this,t,0)}}}!function(){try{n="function"==typeof setTimeout?setTimeout:r}catch(t){n=r}try{o="function"==typeof clearTimeout?clearTimeout:s}catch(t){o=s}}();var a,u=[],l=!1,f=-1;function d(){l&&a&&(l=!1,a.length?u=a.concat(u):f=-1,u.length&&p())}function p(){if(!l){var t=c(d);l=!0;for(var e=u.length;e;){for(a=u,u=[];++f<e;)a&&a[f].run();f=-1,e=u.length}a=null,l=!1,function(t){if(o===clearTimeout)return clearTimeout(t);if((o===s||!o)&&clearTimeout)return o=clearTimeout,clearTimeout(t);try{o(t)}catch(e){try{return o.call(null,t)}catch(e){return o.call(this,t)}}}(t)}}function h(t,e){this.fun=t,this.array=e}function m(){}i.nextTick=function(t){var e=new Array(arguments.length-1);if(arguments.length>1)for(var n=1;n<arguments.length;n++)e[n-1]=arguments[n];u.push(new h(t,e)),1!==u.length||l||c(p)},h.prototype.run=function(){this.fun.apply(null,this.array)},i.title="browser",i.browser=!0,i.env={},i.argv=[],i.version="",i.versions={},i.on=m,i.addListener=m,i.once=m,i.off=m,i.removeListener=m,i.removeAllListeners=m,i.emit=m,i.prependListener=m,i.prependOnceListener=m,i.listeners=function(t){return[]},i.binding=function(t){throw new Error("process.binding is not supported")},i.cwd=function(){return"/"},i.chdir=function(t){throw new Error("process.chdir is not supported")},i.umask=function(){return 0}},function(t,e,n){"use strict";n.r(e);var o=n(17),i=n(2);for(var r in i)"default"!==r&&function(t){n.d(e,t,function(){return i[t]})}(r);n(33);var s=n(0),c=Object(s.a)(i.default,o.a,o.b,!1,null,null,null);e.default=c.exports},function(t,e,n){"use strict";n.r(e);var o=n(18),i=n(4);for(var r in i)"default"!==r&&function(t){n.d(e,t,function(){return i[t]})}(r);var s=n(0),c=Object(s.a)(i.default,o.a,o.b,!1,null,null,null);e.default=c.exports},function(t,e,n){"use strict";n.r(e);var o=n(19),i=n(6);for(var r in i)"default"!==r&&function(t){n.d(e,t,function(){return i[t]})}(r);var s=n(0),c=Object(s.a)(i.default,o.a,o.b,!1,null,null,null);e.default=c.exports},function(t,e,n){"use strict";n.r(e);var o=n(20),i=n(8);for(var r in i)"default"!==r&&function(t){n.d(e,t,function(){return i[t]})}(r);var s=n(0),c=Object(s.a)(i.default,o.a,o.b,!1,null,null,null);e.default=c.exports},function(t,e,n){"use strict";n.r(e);var o=n(21),i=n(10);for(var r in i)"default"!==r&&function(t){n.d(e,t,function(){return i[t]})}(r);var s=n(0),c=Object(s.a)(i.default,o.a,o.b,!1,null,null,null);e.default=c.exports},function(t,e,n){"use strict";var o=n(12);n.n(o).a},,function(t,e,n){"use strict";Object.defineProperty(e,"__esModule",{value:!0});var o=Object.assign||function(t){for(var e=1;e<arguments.length;e++){var n=arguments[e];for(var o in n)Object.prototype.hasOwnProperty.call(n,o)&&(t[o]=n[o])}return t},i="function"==typeof Symbol&&"symbol"==typeof Symbol.iterator?function(t){return typeof t}:function(t){return t&&"function"==typeof Symbol&&t.constructor===Symbol&&t!==Symbol.prototype?"symbol":typeof t},r=n(16),s=n(1),c=function(t){Object.defineProperties(this,{Vue:{get:function(){return t}},confirmDefinition:{get:this.defineConfirm}})};c.prototype.getConfirmMessage=function(t){return t.value&&t.value.message?t.value.message:"string"==typeof t.value?t.value:null},c.prototype.getOptions=function(t){var e="object"===i(t.value)?(0,r.cloneObj)(t.value):{};return delete e.ok,delete e.cancel,t.arg&&s.CONFIRM_TYPES.hasOwnProperty(t.arg.toUpperCase())&&(e.type=s.CONFIRM_TYPES[t.arg.toUpperCase()]),e},c.prototype.getThenCallback=function(t,e){return t.value&&t.value.ok?function(n){return t.value.ok(o({},n,{node:e}))}:function(t){t.loading&&t.close(),e.removeEventListener("click",e.VuejsDialog.clickHandler,!0),(0,r.clickNode)(e),e.addEventListener("click",e.VuejsDialog.clickHandler,!0)}},c.prototype.getCatchCallback=function(t){return t.value&&t.value.cancel?t.value.cancel:r.noop},c.prototype.clickHandler=function(t,e,n){t.preventDefault(),t.stopImmediatePropagation();var o=this.getOptions(n),i=this.getConfirmMessage(n),r=this.getThenCallback(n,e),s=this.getCatchCallback(n);this.Vue.dialog.confirm(i,o).then(r).catch(s)},c.prototype.defineConfirm=function(){var t=this,e={bind:function(e,n){e.VuejsDialog=e.VuejsDialog||{},e.VuejsDialog.clickHandler=function(o){return t.clickHandler(o,e,n)},e.addEventListener("click",e.VuejsDialog.clickHandler,!0)},unbind:function(t){t.removeEventListener("click",t.VuejsDialog.clickHandler,!0)}};return e},e.default=c},function(t,e,n){"use strict";n.r(e);var o=n(0),i=Object(o.a)({},function(){this.$createElement;this._self._c;return this._m(0)},[function(){var t=this.$createElement,e=this._self._c||t;return e("span",{staticClass:"dg-btn-loader"},[e("span",{staticClass:"dg-circles"},[e("span",{staticClass:"dg-circle"}),this._v(" "),e("span",{staticClass:"dg-circle"}),this._v(" "),e("span",{staticClass:"dg-circle"})])])}],!1,null,null,null);e.default=i.exports}])});
+
+/***/ }),
+
 /***/ "./node_modules/vuex/dist/vuex.esm.js":
 /*!********************************************!*\
   !*** ./node_modules/vuex/dist/vuex.esm.js ***!
@@ -85072,6 +85471,1254 @@ module.exports = function(module) {
 
 /***/ }),
 
+/***/ "./resources/bootbox/bootbox.all.min.js":
+/*!**********************************************!*\
+  !*** ./resources/bootbox/bootbox.all.min.js ***!
+  \**********************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
+
+/**
+ * bootbox.js 5.4.0
+ *
+ * http://bootboxjs.com/license.txt
+ */
+!function (t, e) {
+  'use strict';
+
+   true ? !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(/*! jquery */ "./node_modules/jquery/dist/jquery.js")], __WEBPACK_AMD_DEFINE_FACTORY__ = (e),
+				__WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ?
+				(__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__),
+				__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)) : undefined;
+}(this, function e(u, p) {
+  'use strict';
+
+  var r, n, i, l;
+  Object.keys || (Object.keys = (r = Object.prototype.hasOwnProperty, n = !{
+    toString: null
+  }.propertyIsEnumerable('toString'), l = (i = ['toString', 'toLocaleString', 'valueOf', 'hasOwnProperty', 'isPrototypeOf', 'propertyIsEnumerable', 'constructor']).length, function (t) {
+    if ('function' != typeof t && ('object' != _typeof(t) || null === t)) throw new TypeError('Object.keys called on non-object');
+    var e,
+        o,
+        a = [];
+
+    for (e in t) {
+      r.call(t, e) && a.push(e);
+    }
+
+    if (n) for (o = 0; o < l; o++) {
+      r.call(t, i[o]) && a.push(i[o]);
+    }
+    return a;
+  }));
+  var d = {};
+  d.VERSION = '5.0.0';
+  var b = {
+    ar: {
+      OK: 'موافق',
+      CANCEL: 'الغاء',
+      CONFIRM: 'تأكيد'
+    },
+    bg_BG: {
+      OK: 'Ок',
+      CANCEL: 'Отказ',
+      CONFIRM: 'Потвърждавам'
+    },
+    br: {
+      OK: 'OK',
+      CANCEL: 'Cancelar',
+      CONFIRM: 'Sim'
+    },
+    cs: {
+      OK: 'OK',
+      CANCEL: 'Zrušit',
+      CONFIRM: 'Potvrdit'
+    },
+    da: {
+      OK: 'OK',
+      CANCEL: 'Annuller',
+      CONFIRM: 'Accepter'
+    },
+    de: {
+      OK: 'OK',
+      CANCEL: 'Abbrechen',
+      CONFIRM: 'Akzeptieren'
+    },
+    el: {
+      OK: 'Εντάξει',
+      CANCEL: 'Ακύρωση',
+      CONFIRM: 'Επιβεβαίωση'
+    },
+    en: {
+      OK: 'OK',
+      CANCEL: 'Cancel',
+      CONFIRM: 'OK'
+    },
+    es: {
+      OK: 'OK',
+      CANCEL: 'Cancelar',
+      CONFIRM: 'Aceptar'
+    },
+    eu: {
+      OK: 'OK',
+      CANCEL: 'Ezeztatu',
+      CONFIRM: 'Onartu'
+    },
+    et: {
+      OK: 'OK',
+      CANCEL: 'Katkesta',
+      CONFIRM: 'OK'
+    },
+    fa: {
+      OK: 'قبول',
+      CANCEL: 'لغو',
+      CONFIRM: 'تایید'
+    },
+    fi: {
+      OK: 'OK',
+      CANCEL: 'Peruuta',
+      CONFIRM: 'OK'
+    },
+    fr: {
+      OK: 'OK',
+      CANCEL: 'Annuler',
+      CONFIRM: 'Confirmer'
+    },
+    he: {
+      OK: 'אישור',
+      CANCEL: 'ביטול',
+      CONFIRM: 'אישור'
+    },
+    hu: {
+      OK: 'OK',
+      CANCEL: 'Mégsem',
+      CONFIRM: 'Megerősít'
+    },
+    hr: {
+      OK: 'OK',
+      CANCEL: 'Odustani',
+      CONFIRM: 'Potvrdi'
+    },
+    id: {
+      OK: 'OK',
+      CANCEL: 'Batal',
+      CONFIRM: 'OK'
+    },
+    it: {
+      OK: 'OK',
+      CANCEL: 'Annulla',
+      CONFIRM: 'Conferma'
+    },
+    ja: {
+      OK: 'OK',
+      CANCEL: 'キャンセル',
+      CONFIRM: '確認'
+    },
+    ka: {
+      OK: 'OK',
+      CANCEL: 'გაუქმება',
+      CONFIRM: 'დადასტურება'
+    },
+    ko: {
+      OK: 'OK',
+      CANCEL: '취소',
+      CONFIRM: '확인'
+    },
+    lt: {
+      OK: 'Gerai',
+      CANCEL: 'Atšaukti',
+      CONFIRM: 'Patvirtinti'
+    },
+    lv: {
+      OK: 'Labi',
+      CANCEL: 'Atcelt',
+      CONFIRM: 'Apstiprināt'
+    },
+    nl: {
+      OK: 'OK',
+      CANCEL: 'Annuleren',
+      CONFIRM: 'Accepteren'
+    },
+    no: {
+      OK: 'OK',
+      CANCEL: 'Avbryt',
+      CONFIRM: 'OK'
+    },
+    pl: {
+      OK: 'OK',
+      CANCEL: 'Anuluj',
+      CONFIRM: 'Potwierdź'
+    },
+    pt: {
+      OK: 'OK',
+      CANCEL: 'Cancelar',
+      CONFIRM: 'Confirmar'
+    },
+    ru: {
+      OK: 'OK',
+      CANCEL: 'Отмена',
+      CONFIRM: 'Применить'
+    },
+    sk: {
+      OK: 'OK',
+      CANCEL: 'Zrušiť',
+      CONFIRM: 'Potvrdiť'
+    },
+    sl: {
+      OK: 'OK',
+      CANCEL: 'Prekliči',
+      CONFIRM: 'Potrdi'
+    },
+    sq: {
+      OK: 'OK',
+      CANCEL: 'Anulo',
+      CONFIRM: 'Prano'
+    },
+    sv: {
+      OK: 'OK',
+      CANCEL: 'Avbryt',
+      CONFIRM: 'OK'
+    },
+    sw: {
+      OK: 'Sawa',
+      CANCEL: 'Ghairi',
+      CONFIRM: 'Thibitisha'
+    },
+    ta: {
+      OK: 'சரி',
+      CANCEL: 'ரத்து செய்',
+      CONFIRM: 'உறுதி செய்'
+    },
+    th: {
+      OK: 'ตกลง',
+      CANCEL: 'ยกเลิก',
+      CONFIRM: 'ยืนยัน'
+    },
+    tr: {
+      OK: 'Tamam',
+      CANCEL: 'İptal',
+      CONFIRM: 'Onayla'
+    },
+    uk: {
+      OK: 'OK',
+      CANCEL: 'Відміна',
+      CONFIRM: 'Прийняти'
+    },
+    zh_CN: {
+      OK: 'OK',
+      CANCEL: '取消',
+      CONFIRM: '确认'
+    },
+    zh_TW: {
+      OK: 'OK',
+      CANCEL: '取消',
+      CONFIRM: '確認'
+    }
+  },
+      f = {
+    dialog: "<div class=\"bootbox modal\" tabindex=\"-1\" role=\"dialog\" aria-hidden=\"true\"><div class=\"modal-dialog\"><div class=\"modal-content\"><div class=\"modal-body\"><div class=\"bootbox-body\"></div></div></div></div></div>",
+    header: "<div class=\"modal-header\"><h5 class=\"modal-title\"></h5></div>",
+    footer: '<div class="modal-footer"></div>',
+    closeButton: '<button type="button" class="bootbox-close-button close" aria-hidden="true">&times;</button>',
+    form: '<form class="bootbox-form"></form>',
+    button: '<button type="button" class="btn"></button>',
+    option: '<option></option>',
+    promptMessage: '<div class="bootbox-prompt-message"></div>',
+    inputs: {
+      text: '<input class="bootbox-input bootbox-input-text form-control" autocomplete="off" type="text" />',
+      textarea: '<textarea class="bootbox-input bootbox-input-textarea form-control"></textarea>',
+      email: '<input class="bootbox-input bootbox-input-email form-control" autocomplete="off" type="email" />',
+      select: '<select class="bootbox-input bootbox-input-select form-control"></select>',
+      checkbox: '<div class="form-check checkbox"><label class="form-check-label"><input class="form-check-input bootbox-input bootbox-input-checkbox" type="checkbox" /></label></div>',
+      radio: '<div class="form-check radio"><label class="form-check-label"><input class="form-check-input bootbox-input bootbox-input-radio" type="radio" name="bootbox-radio" /></label></div>',
+      date: '<input class="bootbox-input bootbox-input-date form-control" autocomplete="off" type="date" />',
+      time: '<input class="bootbox-input bootbox-input-time form-control" autocomplete="off" type="time" />',
+      number: '<input class="bootbox-input bootbox-input-number form-control" autocomplete="off" type="number" />',
+      password: '<input class="bootbox-input bootbox-input-password form-control" autocomplete="off" type="password" />',
+      range: '<input class="bootbox-input bootbox-input-range form-control-range" autocomplete="off" type="range" />'
+    }
+  },
+      m = {
+    locale: 'en',
+    backdrop: 'static',
+    animate: !0,
+    className: null,
+    closeButton: !0,
+    show: !0,
+    container: 'body',
+    value: '',
+    inputType: 'text',
+    swapButtonOrder: !1,
+    centerVertical: !1,
+    multiple: !1,
+    scrollable: !1
+  };
+
+  function c(t, e, o) {
+    return u.extend(!0, {}, t, function (t, e) {
+      var o = t.length,
+          a = {};
+      if (o < 1 || 2 < o) throw new Error('Invalid argument length');
+      return 2 === o || 'string' == typeof t[0] ? (a[e[0]] = t[0], a[e[1]] = t[1]) : a = t[0], a;
+    }(e, o));
+  }
+
+  function h(t, e, o, a) {
+    var r;
+    a && a[0] && (r = a[0].locale || m.locale, (a[0].swapButtonOrder || m.swapButtonOrder) && (e = e.reverse()));
+    var n,
+        i,
+        l,
+        s = {
+      className: 'bootbox-' + t,
+      buttons: function (t, e) {
+        for (var o = {}, a = 0, r = t.length; a < r; a++) {
+          var n = t[a],
+              i = n.toLowerCase(),
+              l = n.toUpperCase();
+          o[i] = {
+            label: (s = l, c = e, u = b[c], u ? u[s] : b.en[s])
+          };
+        }
+
+        var s, c, u;
+        return o;
+      }(e, r)
+    };
+    return n = c(s, a, o), l = {}, w(i = e, function (t, e) {
+      l[e] = !0;
+    }), w(n.buttons, function (t) {
+      if (l[t] === p) throw new Error('button key "' + t + '" is not allowed (options are ' + i.join(' ') + ')');
+    }), n;
+  }
+
+  function C(t) {
+    return Object.keys(t).length;
+  }
+
+  function w(t, o) {
+    var a = 0;
+    u.each(t, function (t, e) {
+      o(t, e, a++);
+    });
+  }
+
+  function O(t) {
+    t.data.dialog.find('.bootbox-accept').first().trigger('focus');
+  }
+
+  function v(t) {
+    t.target === t.data.dialog[0] && t.data.dialog.remove();
+  }
+
+  function g(t) {
+    t.target === t.data.dialog[0] && (t.data.dialog.off('escape.close.bb'), t.data.dialog.off('click'));
+  }
+
+  function N(t, e, o) {
+    t.stopPropagation(), t.preventDefault(), u.isFunction(o) && !1 === o.call(e, t) || e.modal('hide');
+  }
+
+  function y(t) {
+    return /([01][0-9]|2[0-3]):[0-5][0-9]?:[0-5][0-9]/.test(t);
+  }
+
+  function x(t) {
+    return /(\d{4})-(\d{2})-(\d{2})/.test(t);
+  }
+
+  return d.locales = function (t) {
+    return t ? b[t] : b;
+  }, d.addLocale = function (t, o) {
+    return u.each(['OK', 'CANCEL', 'CONFIRM'], function (t, e) {
+      if (!o[e]) throw new Error('Please supply a translation for "' + e + '"');
+    }), b[t] = {
+      OK: o.OK,
+      CANCEL: o.CANCEL,
+      CONFIRM: o.CONFIRM
+    }, d;
+  }, d.removeLocale = function (t) {
+    if ('en' === t) throw new Error('"en" is used as the default and fallback locale and cannot be removed.');
+    return delete b[t], d;
+  }, d.setLocale = function (t) {
+    return d.setDefaults('locale', t);
+  }, d.setDefaults = function () {
+    var t = {};
+    return 2 === arguments.length ? t[arguments[0]] = arguments[1] : t = arguments[0], u.extend(m, t), d;
+  }, d.hideAll = function () {
+    return u('.bootbox').modal('hide'), d;
+  }, d.init = function (t) {
+    return e(t || u);
+  }, d.dialog = function (t) {
+    if (u.fn.modal === p) throw new Error("\"$.fn.modal\" is not defined; please double check you have included the Bootstrap JavaScript library. See http://getbootstrap.com/javascript/ for more details.");
+
+    if (t = function (r) {
+      var n, i;
+      if ('object' != _typeof(r)) throw new Error('Please supply an object of options');
+      if (!r.message) throw new Error('"message" option must not be null or an empty string.');
+      (r = u.extend({}, m, r)).buttons || (r.buttons = {});
+      return n = r.buttons, i = C(n), w(n, function (t, e, o) {
+        if (u.isFunction(e) && (e = n[t] = {
+          callback: e
+        }), 'object' !== u.type(e)) throw new Error('button with key "' + t + '" must be an object');
+
+        if (e.label || (e.label = t), !e.className) {
+          var a = !1;
+          a = r.swapButtonOrder ? 0 === o : o === i - 1, e.className = i <= 2 && a ? 'btn-primary' : 'btn-secondary btn-default';
+        }
+      }), r;
+    }(t), u.fn.modal.Constructor.VERSION) {
+      t.fullBootstrapVersion = u.fn.modal.Constructor.VERSION;
+      var e = t.fullBootstrapVersion.indexOf('.');
+      t.bootstrap = t.fullBootstrapVersion.substring(0, e);
+    } else t.bootstrap = '2', t.fullBootstrapVersion = '2.3.2', console.warn('Bootbox will *mostly* work with Bootstrap 2, but we do not officially support it. Please upgrade, if possible.');
+
+    var o = u(f.dialog),
+        a = o.find('.modal-dialog'),
+        r = o.find('.modal-body'),
+        n = u(f.header),
+        i = u(f.footer),
+        l = t.buttons,
+        s = {
+      onEscape: t.onEscape
+    };
+    if (r.find('.bootbox-body').html(t.message), 0 < C(t.buttons) && (w(l, function (t, e) {
+      var o = u(f.button);
+
+      switch (o.data('bb-handler', t), o.addClass(e.className), t) {
+        case 'ok':
+        case 'confirm':
+          o.addClass('bootbox-accept');
+          break;
+
+        case 'cancel':
+          o.addClass('bootbox-cancel');
+      }
+
+      o.html(e.label), i.append(o), s[t] = e.callback;
+    }), r.after(i)), !0 === t.animate && o.addClass('fade'), t.className && o.addClass(t.className), t.size) switch (t.fullBootstrapVersion.substring(0, 3) < '3.1' && console.warn('"size" requires Bootstrap 3.1.0 or higher. You appear to be using ' + t.fullBootstrapVersion + '. Please upgrade to use this option.'), t.size) {
+      case 'small':
+      case 'sm':
+        a.addClass('modal-sm');
+        break;
+
+      case 'large':
+      case 'lg':
+        a.addClass('modal-lg');
+        break;
+
+      case 'extra-large':
+      case 'xl':
+        a.addClass('modal-xl'), t.fullBootstrapVersion.substring(0, 3) < '4.2' && console.warn('Using size "xl"/"extra-large" requires Bootstrap 4.2.0 or higher. You appear to be using ' + t.fullBootstrapVersion + '. Please upgrade to use this option.');
+    }
+
+    if (t.scrollable && (a.addClass('modal-dialog-scrollable'), t.fullBootstrapVersion.substring(0, 3) < '4.3' && console.warn('Using "scrollable" requires Bootstrap 4.3.0 or higher. You appear to be using ' + t.fullBootstrapVersion + '. Please upgrade to use this option.')), t.title && (r.before(n), o.find('.modal-title').html(t.title)), t.closeButton) {
+      var c = u(f.closeButton);
+      t.title ? 3 < t.bootstrap ? o.find('.modal-header').append(c) : o.find('.modal-header').prepend(c) : c.prependTo(r);
+    }
+
+    if (t.centerVertical && (a.addClass('modal-dialog-centered'), t.fullBootstrapVersion < '4.0.0' && console.warn('"centerVertical" requires Bootstrap 4.0.0-beta.3 or higher. You appear to be using ' + t.fullBootstrapVersion + '. Please upgrade to use this option.')), o.one('hide.bs.modal', {
+      dialog: o
+    }, g), t.onHide) {
+      if (!u.isFunction(t.onHide)) throw new Error('Argument supplied to "onHide" must be a function');
+      o.on('hide.bs.modal', t.onHide);
+    }
+
+    if (o.one('hidden.bs.modal', {
+      dialog: o
+    }, v), t.onHidden) {
+      if (!u.isFunction(t.onHidden)) throw new Error('Argument supplied to "onHidden" must be a function');
+      o.on('hidden.bs.modal', t.onHidden);
+    }
+
+    if (t.onShow) {
+      if (!u.isFunction(t.onShow)) throw new Error('Argument supplied to "onShow" must be a function');
+      o.on('show.bs.modal', t.onShow);
+    }
+
+    if (o.one('shown.bs.modal', {
+      dialog: o
+    }, O), t.onShown) {
+      if (!u.isFunction(t.onShown)) throw new Error('Argument supplied to "onShown" must be a function');
+      o.on('shown.bs.modal', t.onShown);
+    }
+
+    return 'static' !== t.backdrop && o.on('click.dismiss.bs.modal', function (t) {
+      o.children('.modal-backdrop').length && (t.currentTarget = o.children('.modal-backdrop').get(0)), t.target === t.currentTarget && o.trigger('escape.close.bb');
+    }), o.on('escape.close.bb', function (t) {
+      s.onEscape && N(t, o, s.onEscape);
+    }), o.on('click', '.modal-footer button:not(.disabled)', function (t) {
+      var e = u(this).data('bb-handler');
+      e !== p && N(t, o, s[e]);
+    }), o.on('click', '.bootbox-close-button', function (t) {
+      N(t, o, s.onEscape);
+    }), o.on('keyup', function (t) {
+      27 === t.which && o.trigger('escape.close.bb');
+    }), u(t.container).append(o), o.modal({
+      backdrop: !!t.backdrop && 'static',
+      keyboard: !1,
+      show: !1
+    }), t.show && o.modal('show'), o;
+  }, d.alert = function () {
+    var t;
+    if ((t = h('alert', ['ok'], ['message', 'callback'], arguments)).callback && !u.isFunction(t.callback)) throw new Error('alert requires the "callback" property to be a function when provided');
+    return t.buttons.ok.callback = t.onEscape = function () {
+      return !u.isFunction(t.callback) || t.callback.call(this);
+    }, d.dialog(t);
+  }, d.confirm = function () {
+    var t;
+    if (t = h('confirm', ['cancel', 'confirm'], ['message', 'callback'], arguments), !u.isFunction(t.callback)) throw new Error('confirm requires a callback');
+    return t.buttons.cancel.callback = t.onEscape = function () {
+      return t.callback.call(this, !1);
+    }, t.buttons.confirm.callback = function () {
+      return t.callback.call(this, !0);
+    }, d.dialog(t);
+  }, d.prompt = function () {
+    var r, e, t, n, o, a;
+    if (t = u(f.form), (r = h('prompt', ['cancel', 'confirm'], ['title', 'callback'], arguments)).value || (r.value = m.value), r.inputType || (r.inputType = m.inputType), o = r.show === p ? m.show : r.show, r.show = !1, r.buttons.cancel.callback = r.onEscape = function () {
+      return r.callback.call(this, null);
+    }, r.buttons.confirm.callback = function () {
+      var t;
+      if ('checkbox' === r.inputType) t = n.find('input:checked').map(function () {
+        return u(this).val();
+      }).get();else if ('radio' === r.inputType) t = n.find('input:checked').val();else {
+        if (n[0].checkValidity && !n[0].checkValidity()) return !1;
+        t = 'select' === r.inputType && !0 === r.multiple ? n.find('option:selected').map(function () {
+          return u(this).val();
+        }).get() : n.val();
+      }
+      return r.callback.call(this, t);
+    }, !r.title) throw new Error('prompt requires a title');
+    if (!u.isFunction(r.callback)) throw new Error('prompt requires a callback');
+    if (!f.inputs[r.inputType]) throw new Error('Invalid prompt type');
+
+    switch (n = u(f.inputs[r.inputType]), r.inputType) {
+      case 'text':
+      case 'textarea':
+      case 'email':
+      case 'password':
+        n.val(r.value), r.placeholder && n.attr('placeholder', r.placeholder), r.pattern && n.attr('pattern', r.pattern), r.maxlength && n.attr('maxlength', r.maxlength), r.required && n.prop({
+          required: !0
+        }), r.rows && !isNaN(parseInt(r.rows)) && 'textarea' === r.inputType && n.attr({
+          rows: r.rows
+        });
+        break;
+
+      case 'date':
+      case 'time':
+      case 'number':
+      case 'range':
+        if (n.val(r.value), r.placeholder && n.attr('placeholder', r.placeholder), r.pattern && n.attr('pattern', r.pattern), r.required && n.prop({
+          required: !0
+        }), 'date' !== r.inputType && r.step) {
+          if (!('any' === r.step || !isNaN(r.step) && 0 < parseFloat(r.step))) throw new Error('"step" must be a valid positive number or the value "any". See https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input#attr-step for more information.');
+          n.attr('step', r.step);
+        }
+
+        !function (t, e, o) {
+          var a = !1,
+              r = !0,
+              n = !0;
+          if ('date' === t) e === p || (r = x(e)) ? o === p || (n = x(o)) || console.warn('Browsers which natively support the "date" input type expect date values to be of the form "YYYY-MM-DD" (see ISO-8601 https://www.iso.org/iso-8601-date-and-time-format.html). Bootbox does not enforce this rule, but your max value may not be enforced by this browser.') : console.warn('Browsers which natively support the "date" input type expect date values to be of the form "YYYY-MM-DD" (see ISO-8601 https://www.iso.org/iso-8601-date-and-time-format.html). Bootbox does not enforce this rule, but your min value may not be enforced by this browser.');else if ('time' === t) {
+            if (e !== p && !(r = y(e))) throw new Error('"min" is not a valid time. See https://www.w3.org/TR/2012/WD-html-markup-20120315/datatypes.html#form.data.time for more information.');
+            if (o !== p && !(n = y(o))) throw new Error('"max" is not a valid time. See https://www.w3.org/TR/2012/WD-html-markup-20120315/datatypes.html#form.data.time for more information.');
+          } else {
+            if (e !== p && isNaN(e)) throw r = !1, new Error('"min" must be a valid number. See https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input#attr-min for more information.');
+            if (o !== p && isNaN(o)) throw n = !1, new Error('"max" must be a valid number. See https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input#attr-max for more information.');
+          }
+
+          if (r && n) {
+            if (o <= e) throw new Error('"max" must be greater than "min". See https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input#attr-max for more information.');
+            a = !0;
+          }
+
+          return a;
+        }(r.inputType, r.min, r.max) || (r.min !== p && n.attr('min', r.min), r.max !== p && n.attr('max', r.max));
+        break;
+
+      case 'select':
+        var i = {};
+        if (a = r.inputOptions || [], !u.isArray(a)) throw new Error('Please pass an array of input options');
+        if (!a.length) throw new Error('prompt with "inputType" set to "select" requires at least one option');
+        r.placeholder && n.attr('placeholder', r.placeholder), r.required && n.prop({
+          required: !0
+        }), r.multiple && n.prop({
+          multiple: !0
+        }), w(a, function (t, e) {
+          var o = n;
+          if (e.value === p || e.text === p) throw new Error('each option needs a "value" property and a "text" property');
+          e.group && (i[e.group] || (i[e.group] = u('<optgroup />').attr('label', e.group)), o = i[e.group]);
+          var a = u(f.option);
+          a.attr('value', e.value).text(e.text), o.append(a);
+        }), w(i, function (t, e) {
+          n.append(e);
+        }), n.val(r.value);
+        break;
+
+      case 'checkbox':
+        var l = u.isArray(r.value) ? r.value : [r.value];
+        if (!(a = r.inputOptions || []).length) throw new Error('prompt with "inputType" set to "checkbox" requires at least one option');
+        n = u('<div class="bootbox-checkbox-list"></div>'), w(a, function (t, o) {
+          if (o.value === p || o.text === p) throw new Error('each option needs a "value" property and a "text" property');
+          var a = u(f.inputs[r.inputType]);
+          a.find('input').attr('value', o.value), a.find('label').append('\n' + o.text), w(l, function (t, e) {
+            e === o.value && a.find('input').prop('checked', !0);
+          }), n.append(a);
+        });
+        break;
+
+      case 'radio':
+        if (r.value !== p && u.isArray(r.value)) throw new Error('prompt with "inputType" set to "radio" requires a single, non-array value for "value"');
+        if (!(a = r.inputOptions || []).length) throw new Error('prompt with "inputType" set to "radio" requires at least one option');
+        n = u('<div class="bootbox-radiobutton-list"></div>');
+        var s = !0;
+        w(a, function (t, e) {
+          if (e.value === p || e.text === p) throw new Error('each option needs a "value" property and a "text" property');
+          var o = u(f.inputs[r.inputType]);
+          o.find('input').attr('value', e.value), o.find('label').append('\n' + e.text), r.value !== p && e.value === r.value && (o.find('input').prop('checked', !0), s = !1), n.append(o);
+        }), s && n.find('input[type="radio"]').first().prop('checked', !0);
+    }
+
+    if (t.append(n), t.on('submit', function (t) {
+      t.preventDefault(), t.stopPropagation(), e.find('.bootbox-accept').trigger('click');
+    }), '' !== u.trim(r.message)) {
+      var c = u(f.promptMessage).html(r.message);
+      t.prepend(c), r.message = t;
+    } else r.message = t;
+
+    return (e = d.dialog(r)).off('shown.bs.modal', O), e.on('shown.bs.modal', function () {
+      n.focus();
+    }), !0 === o && e.modal('show'), e;
+  }, d;
+});
+
+/***/ }),
+
+/***/ "./resources/bootbox/bootbox.locales.min.js":
+/*!**************************************************!*\
+  !*** ./resources/bootbox/bootbox.locales.min.js ***!
+  \**************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
+
+/**
+ * bootbox.js 5.4.0
+ *
+ * http://bootboxjs.com/license.txt
+ */
+!function (C, a) {
+  'use strict';
+
+   true ? !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(/*! bootbox */ "./node_modules/bootbox/bootbox.all.js")], __WEBPACK_AMD_DEFINE_FACTORY__ = (a),
+				__WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ?
+				(__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__),
+				__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)) : undefined;
+}(this, function (C) {
+  'use strict';
+
+  C.addLocale('ar', {
+    OK: 'موافق',
+    CANCEL: 'الغاء',
+    CONFIRM: 'تأكيد'
+  }), C.addLocale('az', {
+    OK: 'OK',
+    CANCEL: 'İmtina et',
+    CONFIRM: 'Təsdiq et'
+  }), C.addLocale('bg_BG', {
+    OK: 'Ок',
+    CANCEL: 'Отказ',
+    CONFIRM: 'Потвърждавам'
+  }), C.addLocale('br', {
+    OK: 'OK',
+    CANCEL: 'Cancelar',
+    CONFIRM: 'Sim'
+  }), C.addLocale('cs', {
+    OK: 'OK',
+    CANCEL: 'Zrušit',
+    CONFIRM: 'Potvrdit'
+  }), C.addLocale('da', {
+    OK: 'OK',
+    CANCEL: 'Annuller',
+    CONFIRM: 'Accepter'
+  }), C.addLocale('de', {
+    OK: 'OK',
+    CANCEL: 'Abbrechen',
+    CONFIRM: 'Akzeptieren'
+  }), C.addLocale('el', {
+    OK: 'Εντάξει',
+    CANCEL: 'Ακύρωση',
+    CONFIRM: 'Επιβεβαίωση'
+  }), C.addLocale('en', {
+    OK: 'OK',
+    CANCEL: 'Cancel',
+    CONFIRM: 'OK'
+  }), C.addLocale('es', {
+    OK: 'OK',
+    CANCEL: 'Cancelar',
+    CONFIRM: 'Aceptar'
+  }), C.addLocale('eu', {
+    OK: 'OK',
+    CANCEL: 'Ezeztatu',
+    CONFIRM: 'Onartu'
+  }), C.addLocale('et', {
+    OK: 'OK',
+    CANCEL: 'Katkesta',
+    CONFIRM: 'OK'
+  }), C.addLocale('fa', {
+    OK: 'قبول',
+    CANCEL: 'لغو',
+    CONFIRM: 'تایید'
+  }), C.addLocale('fi', {
+    OK: 'OK',
+    CANCEL: 'Peruuta',
+    CONFIRM: 'OK'
+  }), C.addLocale('fr', {
+    OK: 'OK',
+    CANCEL: 'Annuler',
+    CONFIRM: 'Confirmer'
+  }), C.addLocale('he', {
+    OK: 'אישור',
+    CANCEL: 'ביטול',
+    CONFIRM: 'אישור'
+  }), C.addLocale('hu', {
+    OK: 'OK',
+    CANCEL: 'Mégsem',
+    CONFIRM: 'Megerősít'
+  }), C.addLocale('hr', {
+    OK: 'OK',
+    CANCEL: 'Odustani',
+    CONFIRM: 'Potvrdi'
+  }), C.addLocale('id', {
+    OK: 'OK',
+    CANCEL: 'Batal',
+    CONFIRM: 'OK'
+  }), C.addLocale('it', {
+    OK: 'OK',
+    CANCEL: 'Annulla',
+    CONFIRM: 'Conferma'
+  }), C.addLocale('ja', {
+    OK: 'OK',
+    CANCEL: 'キャンセル',
+    CONFIRM: '確認'
+  }), C.addLocale('ka', {
+    OK: 'OK',
+    CANCEL: 'გაუქმება',
+    CONFIRM: 'დადასტურება'
+  }), C.addLocale('ko', {
+    OK: 'OK',
+    CANCEL: '취소',
+    CONFIRM: '확인'
+  }), C.addLocale('lt', {
+    OK: 'Gerai',
+    CANCEL: 'Atšaukti',
+    CONFIRM: 'Patvirtinti'
+  }), C.addLocale('lv', {
+    OK: 'Labi',
+    CANCEL: 'Atcelt',
+    CONFIRM: 'Apstiprināt'
+  }), C.addLocale('nl', {
+    OK: 'OK',
+    CANCEL: 'Annuleren',
+    CONFIRM: 'Accepteren'
+  }), C.addLocale('no', {
+    OK: 'OK',
+    CANCEL: 'Avbryt',
+    CONFIRM: 'OK'
+  }), C.addLocale('pl', {
+    OK: 'OK',
+    CANCEL: 'Anuluj',
+    CONFIRM: 'Potwierdź'
+  }), C.addLocale('pt', {
+    OK: 'OK',
+    CANCEL: 'Cancelar',
+    CONFIRM: 'Confirmar'
+  }), C.addLocale('ru', {
+    OK: 'OK',
+    CANCEL: 'Отмена',
+    CONFIRM: 'Подтвердить'
+  }), C.addLocale('sk', {
+    OK: 'OK',
+    CANCEL: 'Zrušiť',
+    CONFIRM: 'Potvrdiť'
+  }), C.addLocale('sl', {
+    OK: 'OK',
+    CANCEL: 'Prekliči',
+    CONFIRM: 'Potrdi'
+  }), C.addLocale('sq', {
+    OK: 'OK',
+    CANCEL: 'Anulo',
+    CONFIRM: 'Prano'
+  }), C.addLocale('sv', {
+    OK: 'OK',
+    CANCEL: 'Avbryt',
+    CONFIRM: 'OK'
+  }), C.addLocale('sw', {
+    OK: 'Sawa',
+    CANCEL: 'Ghairi',
+    CONFIRM: 'Thibitisha'
+  }), C.addLocale('ta', {
+    OK: 'சரி',
+    CANCEL: 'ரத்து செய்',
+    CONFIRM: 'உறுதி செய்'
+  }), C.addLocale('th', {
+    OK: 'ตกลง',
+    CANCEL: 'ยกเลิก',
+    CONFIRM: 'ยืนยัน'
+  }), C.addLocale('tr', {
+    OK: 'Tamam',
+    CANCEL: 'İptal',
+    CONFIRM: 'Onayla'
+  }), C.addLocale('uk', {
+    OK: 'OK',
+    CANCEL: 'Відміна',
+    CONFIRM: 'Прийняти'
+  }), C.addLocale('zh_CN', {
+    OK: 'OK',
+    CANCEL: '取消',
+    CONFIRM: '确认'
+  }), C.addLocale('zh_TW', {
+    OK: 'OK',
+    CANCEL: '取消',
+    CONFIRM: '確認'
+  });
+});
+
+/***/ }),
+
+/***/ "./resources/bootbox/bootbox.min.js":
+/*!******************************************!*\
+  !*** ./resources/bootbox/bootbox.min.js ***!
+  \******************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
+
+/**
+ * bootbox.js 5.4.0
+ *
+ * http://bootboxjs.com/license.txt
+ */
+!function (t, e) {
+  'use strict';
+
+   true ? !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(/*! jquery */ "./node_modules/jquery/dist/jquery.js")], __WEBPACK_AMD_DEFINE_FACTORY__ = (e),
+				__WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ?
+				(__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__),
+				__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)) : undefined;
+}(this, function e(p, u) {
+  'use strict';
+
+  var r, n, i, l;
+  Object.keys || (Object.keys = (r = Object.prototype.hasOwnProperty, n = !{
+    toString: null
+  }.propertyIsEnumerable('toString'), l = (i = ['toString', 'toLocaleString', 'valueOf', 'hasOwnProperty', 'isPrototypeOf', 'propertyIsEnumerable', 'constructor']).length, function (t) {
+    if ('function' != typeof t && ('object' != _typeof(t) || null === t)) throw new TypeError('Object.keys called on non-object');
+    var e,
+        o,
+        a = [];
+
+    for (e in t) {
+      r.call(t, e) && a.push(e);
+    }
+
+    if (n) for (o = 0; o < l; o++) {
+      r.call(t, i[o]) && a.push(i[o]);
+    }
+    return a;
+  }));
+  var d = {};
+  d.VERSION = '5.0.0';
+  var b = {
+    en: {
+      OK: 'OK',
+      CANCEL: 'Cancel',
+      CONFIRM: 'OK'
+    }
+  },
+      f = {
+    dialog: "<div class=\"bootbox modal\" tabindex=\"-1\" role=\"dialog\" aria-hidden=\"true\"><div class=\"modal-dialog\"><div class=\"modal-content\"><div class=\"modal-body\"><div class=\"bootbox-body\"></div></div></div></div></div>",
+    header: "<div class=\"modal-header\"><h5 class=\"modal-title\"></h5></div>",
+    footer: '<div class="modal-footer"></div>',
+    closeButton: '<button type="button" class="bootbox-close-button close" aria-hidden="true">&times;</button>',
+    form: '<form class="bootbox-form"></form>',
+    button: '<button type="button" class="btn"></button>',
+    option: '<option></option>',
+    promptMessage: '<div class="bootbox-prompt-message"></div>',
+    inputs: {
+      text: '<input class="bootbox-input bootbox-input-text form-control" autocomplete="off" type="text" />',
+      textarea: '<textarea class="bootbox-input bootbox-input-textarea form-control"></textarea>',
+      email: '<input class="bootbox-input bootbox-input-email form-control" autocomplete="off" type="email" />',
+      select: '<select class="bootbox-input bootbox-input-select form-control"></select>',
+      checkbox: '<div class="form-check checkbox"><label class="form-check-label"><input class="form-check-input bootbox-input bootbox-input-checkbox" type="checkbox" /></label></div>',
+      radio: '<div class="form-check radio"><label class="form-check-label"><input class="form-check-input bootbox-input bootbox-input-radio" type="radio" name="bootbox-radio" /></label></div>',
+      date: '<input class="bootbox-input bootbox-input-date form-control" autocomplete="off" type="date" />',
+      time: '<input class="bootbox-input bootbox-input-time form-control" autocomplete="off" type="time" />',
+      number: '<input class="bootbox-input bootbox-input-number form-control" autocomplete="off" type="number" />',
+      password: '<input class="bootbox-input bootbox-input-password form-control" autocomplete="off" type="password" />',
+      range: '<input class="bootbox-input bootbox-input-range form-control-range" autocomplete="off" type="range" />'
+    }
+  },
+      m = {
+    locale: 'en',
+    backdrop: 'static',
+    animate: !0,
+    className: null,
+    closeButton: !0,
+    show: !0,
+    container: 'body',
+    value: '',
+    inputType: 'text',
+    swapButtonOrder: !1,
+    centerVertical: !1,
+    multiple: !1,
+    scrollable: !1
+  };
+
+  function c(t, e, o) {
+    return p.extend(!0, {}, t, function (t, e) {
+      var o = t.length,
+          a = {};
+      if (o < 1 || 2 < o) throw new Error('Invalid argument length');
+      return 2 === o || 'string' == typeof t[0] ? (a[e[0]] = t[0], a[e[1]] = t[1]) : a = t[0], a;
+    }(e, o));
+  }
+
+  function h(t, e, o, a) {
+    var r;
+    a && a[0] && (r = a[0].locale || m.locale, (a[0].swapButtonOrder || m.swapButtonOrder) && (e = e.reverse()));
+    var n,
+        i,
+        l,
+        s = {
+      className: 'bootbox-' + t,
+      buttons: function (t, e) {
+        for (var o = {}, a = 0, r = t.length; a < r; a++) {
+          var n = t[a],
+              i = n.toLowerCase(),
+              l = n.toUpperCase();
+          o[i] = {
+            label: (s = l, c = e, p = b[c], p ? p[s] : b.en[s])
+          };
+        }
+
+        var s, c, p;
+        return o;
+      }(e, r)
+    };
+    return n = c(s, a, o), l = {}, v(i = e, function (t, e) {
+      l[e] = !0;
+    }), v(n.buttons, function (t) {
+      if (l[t] === u) throw new Error('button key "' + t + '" is not allowed (options are ' + i.join(' ') + ')');
+    }), n;
+  }
+
+  function w(t) {
+    return Object.keys(t).length;
+  }
+
+  function v(t, o) {
+    var a = 0;
+    p.each(t, function (t, e) {
+      o(t, e, a++);
+    });
+  }
+
+  function g(t) {
+    t.data.dialog.find('.bootbox-accept').first().trigger('focus');
+  }
+
+  function y(t) {
+    t.target === t.data.dialog[0] && t.data.dialog.remove();
+  }
+
+  function x(t) {
+    t.target === t.data.dialog[0] && (t.data.dialog.off('escape.close.bb'), t.data.dialog.off('click'));
+  }
+
+  function k(t, e, o) {
+    t.stopPropagation(), t.preventDefault(), p.isFunction(o) && !1 === o.call(e, t) || e.modal('hide');
+  }
+
+  function E(t) {
+    return /([01][0-9]|2[0-3]):[0-5][0-9]?:[0-5][0-9]/.test(t);
+  }
+
+  function O(t) {
+    return /(\d{4})-(\d{2})-(\d{2})/.test(t);
+  }
+
+  return d.locales = function (t) {
+    return t ? b[t] : b;
+  }, d.addLocale = function (t, o) {
+    return p.each(['OK', 'CANCEL', 'CONFIRM'], function (t, e) {
+      if (!o[e]) throw new Error('Please supply a translation for "' + e + '"');
+    }), b[t] = {
+      OK: o.OK,
+      CANCEL: o.CANCEL,
+      CONFIRM: o.CONFIRM
+    }, d;
+  }, d.removeLocale = function (t) {
+    if ('en' === t) throw new Error('"en" is used as the default and fallback locale and cannot be removed.');
+    return delete b[t], d;
+  }, d.setLocale = function (t) {
+    return d.setDefaults('locale', t);
+  }, d.setDefaults = function () {
+    var t = {};
+    return 2 === arguments.length ? t[arguments[0]] = arguments[1] : t = arguments[0], p.extend(m, t), d;
+  }, d.hideAll = function () {
+    return p('.bootbox').modal('hide'), d;
+  }, d.init = function (t) {
+    return e(t || p);
+  }, d.dialog = function (t) {
+    if (p.fn.modal === u) throw new Error("\"$.fn.modal\" is not defined; please double check you have included the Bootstrap JavaScript library. See https://getbootstrap.com/docs/4.4/getting-started/javascript/ for more details.");
+
+    if (t = function (r) {
+      var n, i;
+      if ('object' != _typeof(r)) throw new Error('Please supply an object of options');
+      if (!r.message) throw new Error('"message" option must not be null or an empty string.');
+      (r = p.extend({}, m, r)).buttons || (r.buttons = {});
+      return n = r.buttons, i = w(n), v(n, function (t, e, o) {
+        if (p.isFunction(e) && (e = n[t] = {
+          callback: e
+        }), 'object' !== p.type(e)) throw new Error('button with key "' + t + '" must be an object');
+
+        if (e.label || (e.label = t), !e.className) {
+          var a = !1;
+          a = r.swapButtonOrder ? 0 === o : o === i - 1, e.className = i <= 2 && a ? 'btn-primary' : 'btn-secondary btn-default';
+        }
+      }), r;
+    }(t), p.fn.modal.Constructor.VERSION) {
+      t.fullBootstrapVersion = p.fn.modal.Constructor.VERSION;
+      var e = t.fullBootstrapVersion.indexOf('.');
+      t.bootstrap = t.fullBootstrapVersion.substring(0, e);
+    } else t.bootstrap = '2', t.fullBootstrapVersion = '2.3.2', console.warn('Bootbox will *mostly* work with Bootstrap 2, but we do not officially support it. Please upgrade, if possible.');
+
+    var o = p(f.dialog),
+        a = o.find('.modal-dialog'),
+        r = o.find('.modal-body'),
+        n = p(f.header),
+        i = p(f.footer),
+        l = t.buttons,
+        s = {
+      onEscape: t.onEscape
+    };
+    if (r.find('.bootbox-body').html(t.message), 0 < w(t.buttons) && (v(l, function (t, e) {
+      var o = p(f.button);
+
+      switch (o.data('bb-handler', t), o.addClass(e.className), t) {
+        case 'ok':
+        case 'confirm':
+          o.addClass('bootbox-accept');
+          break;
+
+        case 'cancel':
+          o.addClass('bootbox-cancel');
+      }
+
+      o.html(e.label), i.append(o), s[t] = e.callback;
+    }), r.after(i)), !0 === t.animate && o.addClass('fade'), t.className && o.addClass(t.className), t.size) switch (t.fullBootstrapVersion.substring(0, 3) < '3.1' && console.warn('"size" requires Bootstrap 3.1.0 or higher. You appear to be using ' + t.fullBootstrapVersion + '. Please upgrade to use this option.'), t.size) {
+      case 'small':
+      case 'sm':
+        a.addClass('modal-sm');
+        break;
+
+      case 'large':
+      case 'lg':
+        a.addClass('modal-lg');
+        break;
+
+      case 'extra-large':
+      case 'xl':
+        a.addClass('modal-xl'), t.fullBootstrapVersion.substring(0, 3) < '4.2' && console.warn('Using size "xl"/"extra-large" requires Bootstrap 4.2.0 or higher. You appear to be using ' + t.fullBootstrapVersion + '. Please upgrade to use this option.');
+    }
+
+    if (t.scrollable && (a.addClass('modal-dialog-scrollable'), t.fullBootstrapVersion.substring(0, 3) < '4.3' && console.warn('Using "scrollable" requires Bootstrap 4.3.0 or higher. You appear to be using ' + t.fullBootstrapVersion + '. Please upgrade to use this option.')), t.title && (r.before(n), o.find('.modal-title').html(t.title)), t.closeButton) {
+      var c = p(f.closeButton);
+      t.title ? 3 < t.bootstrap ? o.find('.modal-header').append(c) : o.find('.modal-header').prepend(c) : c.prependTo(r);
+    }
+
+    if (t.centerVertical && (a.addClass('modal-dialog-centered'), t.fullBootstrapVersion < '4.0.0' && console.warn('"centerVertical" requires Bootstrap 4.0.0-beta.3 or higher. You appear to be using ' + t.fullBootstrapVersion + '. Please upgrade to use this option.')), o.one('hide.bs.modal', {
+      dialog: o
+    }, x), t.onHide) {
+      if (!p.isFunction(t.onHide)) throw new Error('Argument supplied to "onHide" must be a function');
+      o.on('hide.bs.modal', t.onHide);
+    }
+
+    if (o.one('hidden.bs.modal', {
+      dialog: o
+    }, y), t.onHidden) {
+      if (!p.isFunction(t.onHidden)) throw new Error('Argument supplied to "onHidden" must be a function');
+      o.on('hidden.bs.modal', t.onHidden);
+    }
+
+    if (t.onShow) {
+      if (!p.isFunction(t.onShow)) throw new Error('Argument supplied to "onShow" must be a function');
+      o.on('show.bs.modal', t.onShow);
+    }
+
+    if (o.one('shown.bs.modal', {
+      dialog: o
+    }, g), t.onShown) {
+      if (!p.isFunction(t.onShown)) throw new Error('Argument supplied to "onShown" must be a function');
+      o.on('shown.bs.modal', t.onShown);
+    }
+
+    return 'static' !== t.backdrop && o.on('click.dismiss.bs.modal', function (t) {
+      o.children('.modal-backdrop').length && (t.currentTarget = o.children('.modal-backdrop').get(0)), t.target === t.currentTarget && o.trigger('escape.close.bb');
+    }), o.on('escape.close.bb', function (t) {
+      s.onEscape && k(t, o, s.onEscape);
+    }), o.on('click', '.modal-footer button:not(.disabled)', function (t) {
+      var e = p(this).data('bb-handler');
+      e !== u && k(t, o, s[e]);
+    }), o.on('click', '.bootbox-close-button', function (t) {
+      k(t, o, s.onEscape);
+    }), o.on('keyup', function (t) {
+      27 === t.which && o.trigger('escape.close.bb');
+    }), p(t.container).append(o), o.modal({
+      backdrop: !!t.backdrop && 'static',
+      keyboard: !1,
+      show: !1
+    }), t.show && o.modal('show'), o;
+  }, d.alert = function () {
+    var t;
+    if ((t = h('alert', ['ok'], ['message', 'callback'], arguments)).callback && !p.isFunction(t.callback)) throw new Error('alert requires the "callback" property to be a function when provided');
+    return t.buttons.ok.callback = t.onEscape = function () {
+      return !p.isFunction(t.callback) || t.callback.call(this);
+    }, d.dialog(t);
+  }, d.confirm = function () {
+    var t;
+    if (t = h('confirm', ['cancel', 'confirm'], ['message', 'callback'], arguments), !p.isFunction(t.callback)) throw new Error('confirm requires a callback');
+    return t.buttons.cancel.callback = t.onEscape = function () {
+      return t.callback.call(this, !1);
+    }, t.buttons.confirm.callback = function () {
+      return t.callback.call(this, !0);
+    }, d.dialog(t);
+  }, d.prompt = function () {
+    var r, e, t, n, o, a;
+    if (t = p(f.form), (r = h('prompt', ['cancel', 'confirm'], ['title', 'callback'], arguments)).value || (r.value = m.value), r.inputType || (r.inputType = m.inputType), o = r.show === u ? m.show : r.show, r.show = !1, r.buttons.cancel.callback = r.onEscape = function () {
+      return r.callback.call(this, null);
+    }, r.buttons.confirm.callback = function () {
+      var t;
+      if ('checkbox' === r.inputType) t = n.find('input:checked').map(function () {
+        return p(this).val();
+      }).get();else if ('radio' === r.inputType) t = n.find('input:checked').val();else {
+        if (n[0].checkValidity && !n[0].checkValidity()) return !1;
+        t = 'select' === r.inputType && !0 === r.multiple ? n.find('option:selected').map(function () {
+          return p(this).val();
+        }).get() : n.val();
+      }
+      return r.callback.call(this, t);
+    }, !r.title) throw new Error('prompt requires a title');
+    if (!p.isFunction(r.callback)) throw new Error('prompt requires a callback');
+    if (!f.inputs[r.inputType]) throw new Error('Invalid prompt type');
+
+    switch (n = p(f.inputs[r.inputType]), r.inputType) {
+      case 'text':
+      case 'textarea':
+      case 'email':
+      case 'password':
+        n.val(r.value), r.placeholder && n.attr('placeholder', r.placeholder), r.pattern && n.attr('pattern', r.pattern), r.maxlength && n.attr('maxlength', r.maxlength), r.required && n.prop({
+          required: !0
+        }), r.rows && !isNaN(parseInt(r.rows)) && 'textarea' === r.inputType && n.attr({
+          rows: r.rows
+        });
+        break;
+
+      case 'date':
+      case 'time':
+      case 'number':
+      case 'range':
+        if (n.val(r.value), r.placeholder && n.attr('placeholder', r.placeholder), r.pattern && n.attr('pattern', r.pattern), r.required && n.prop({
+          required: !0
+        }), 'date' !== r.inputType && r.step) {
+          if (!('any' === r.step || !isNaN(r.step) && 0 < parseFloat(r.step))) throw new Error('"step" must be a valid positive number or the value "any". See https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input#attr-step for more information.');
+          n.attr('step', r.step);
+        }
+
+        !function (t, e, o) {
+          var a = !1,
+              r = !0,
+              n = !0;
+          if ('date' === t) e === u || (r = O(e)) ? o === u || (n = O(o)) || console.warn('Browsers which natively support the "date" input type expect date values to be of the form "YYYY-MM-DD" (see ISO-8601 https://www.iso.org/iso-8601-date-and-time-format.html). Bootbox does not enforce this rule, but your max value may not be enforced by this browser.') : console.warn('Browsers which natively support the "date" input type expect date values to be of the form "YYYY-MM-DD" (see ISO-8601 https://www.iso.org/iso-8601-date-and-time-format.html). Bootbox does not enforce this rule, but your min value may not be enforced by this browser.');else if ('time' === t) {
+            if (e !== u && !(r = E(e))) throw new Error('"min" is not a valid time. See https://www.w3.org/TR/2012/WD-html-markup-20120315/datatypes.html#form.data.time for more information.');
+            if (o !== u && !(n = E(o))) throw new Error('"max" is not a valid time. See https://www.w3.org/TR/2012/WD-html-markup-20120315/datatypes.html#form.data.time for more information.');
+          } else {
+            if (e !== u && isNaN(e)) throw r = !1, new Error('"min" must be a valid number. See https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input#attr-min for more information.');
+            if (o !== u && isNaN(o)) throw n = !1, new Error('"max" must be a valid number. See https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input#attr-max for more information.');
+          }
+
+          if (r && n) {
+            if (o <= e) throw new Error('"max" must be greater than "min". See https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input#attr-max for more information.');
+            a = !0;
+          }
+
+          return a;
+        }(r.inputType, r.min, r.max) || (r.min !== u && n.attr('min', r.min), r.max !== u && n.attr('max', r.max));
+        break;
+
+      case 'select':
+        var i = {};
+        if (a = r.inputOptions || [], !p.isArray(a)) throw new Error('Please pass an array of input options');
+        if (!a.length) throw new Error('prompt with "inputType" set to "select" requires at least one option');
+        r.placeholder && n.attr('placeholder', r.placeholder), r.required && n.prop({
+          required: !0
+        }), r.multiple && n.prop({
+          multiple: !0
+        }), v(a, function (t, e) {
+          var o = n;
+          if (e.value === u || e.text === u) throw new Error('each option needs a "value" property and a "text" property');
+          e.group && (i[e.group] || (i[e.group] = p('<optgroup />').attr('label', e.group)), o = i[e.group]);
+          var a = p(f.option);
+          a.attr('value', e.value).text(e.text), o.append(a);
+        }), v(i, function (t, e) {
+          n.append(e);
+        }), n.val(r.value);
+        break;
+
+      case 'checkbox':
+        var l = p.isArray(r.value) ? r.value : [r.value];
+        if (!(a = r.inputOptions || []).length) throw new Error('prompt with "inputType" set to "checkbox" requires at least one option');
+        n = p('<div class="bootbox-checkbox-list"></div>'), v(a, function (t, o) {
+          if (o.value === u || o.text === u) throw new Error('each option needs a "value" property and a "text" property');
+          var a = p(f.inputs[r.inputType]);
+          a.find('input').attr('value', o.value), a.find('label').append('\n' + o.text), v(l, function (t, e) {
+            e === o.value && a.find('input').prop('checked', !0);
+          }), n.append(a);
+        });
+        break;
+
+      case 'radio':
+        if (r.value !== u && p.isArray(r.value)) throw new Error('prompt with "inputType" set to "radio" requires a single, non-array value for "value"');
+        if (!(a = r.inputOptions || []).length) throw new Error('prompt with "inputType" set to "radio" requires at least one option');
+        n = p('<div class="bootbox-radiobutton-list"></div>');
+        var s = !0;
+        v(a, function (t, e) {
+          if (e.value === u || e.text === u) throw new Error('each option needs a "value" property and a "text" property');
+          var o = p(f.inputs[r.inputType]);
+          o.find('input').attr('value', e.value), o.find('label').append('\n' + e.text), r.value !== u && e.value === r.value && (o.find('input').prop('checked', !0), s = !1), n.append(o);
+        }), s && n.find('input[type="radio"]').first().prop('checked', !0);
+    }
+
+    if (t.append(n), t.on('submit', function (t) {
+      t.preventDefault(), t.stopPropagation(), e.find('.bootbox-accept').trigger('click');
+    }), '' !== p.trim(r.message)) {
+      var c = p(f.promptMessage).html(r.message);
+      t.prepend(c), r.message = t;
+    } else r.message = t;
+
+    return (e = d.dialog(r)).off('shown.bs.modal', g), e.on('shown.bs.modal', function () {
+      n.focus();
+    }), !0 === o && e.modal('show'), e;
+  }, d;
+});
+
+/***/ }),
+
 /***/ "./resources/js/App.vue":
 /*!******************************!*\
   !*** ./resources/js/App.vue ***!
@@ -85157,6 +86804,12 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _smartweb_vue_flash_message__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! @smartweb/vue-flash-message */ "./node_modules/@smartweb/vue-flash-message/build/vue-flash-msg.common.js");
 /* harmony import */ var _smartweb_vue_flash_message__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(_smartweb_vue_flash_message__WEBPACK_IMPORTED_MODULE_3__);
 /* harmony import */ var _store__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./store */ "./resources/js/store.js");
+/* harmony import */ var vuejs_dialog__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! vuejs-dialog */ "./node_modules/vuejs-dialog/dist/vuejs-dialog.min.js");
+/* harmony import */ var vuejs_dialog__WEBPACK_IMPORTED_MODULE_5___default = /*#__PURE__*/__webpack_require__.n(vuejs_dialog__WEBPACK_IMPORTED_MODULE_5__);
+/* harmony import */ var vuejs_dialog_dist_vuejs_dialog_mixin_min_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! vuejs-dialog/dist/vuejs-dialog-mixin.min.js */ "./node_modules/vuejs-dialog/dist/vuejs-dialog-mixin.min.js");
+/* harmony import */ var vuejs_dialog_dist_vuejs_dialog_mixin_min_js__WEBPACK_IMPORTED_MODULE_6___default = /*#__PURE__*/__webpack_require__.n(vuejs_dialog_dist_vuejs_dialog_mixin_min_js__WEBPACK_IMPORTED_MODULE_6__);
+/* harmony import */ var vuejs_dialog_dist_vuejs_dialog_min_css__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! vuejs-dialog/dist/vuejs-dialog.min.css */ "./node_modules/vuejs-dialog/dist/vuejs-dialog.min.css");
+/* harmony import */ var vuejs_dialog_dist_vuejs_dialog_min_css__WEBPACK_IMPORTED_MODULE_7___default = /*#__PURE__*/__webpack_require__.n(vuejs_dialog_dist_vuejs_dialog_min_css__WEBPACK_IMPORTED_MODULE_7__);
 /**
  * First we will load all of this project's JavaScript dependencies which
  * includes Vue and other libraries. It is a great starting point when
@@ -85179,8 +86832,15 @@ __webpack_require__(/*! ./bootstrap */ "./resources/js/bootstrap.js");
 
 
 
+
+ // only needed in custom components
+// include the default style
+
+
 vue__WEBPACK_IMPORTED_MODULE_1___default.a.use(bootstrap_vue__WEBPACK_IMPORTED_MODULE_2__["default"]);
-vue__WEBPACK_IMPORTED_MODULE_1___default.a.use(_smartweb_vue_flash_message__WEBPACK_IMPORTED_MODULE_3___default.a);
+vue__WEBPACK_IMPORTED_MODULE_1___default.a.use(_smartweb_vue_flash_message__WEBPACK_IMPORTED_MODULE_3___default.a); // Tell Vue to install the plugin.
+
+vue__WEBPACK_IMPORTED_MODULE_1___default.a.use(vuejs_dialog__WEBPACK_IMPORTED_MODULE_5___default.a);
 vue__WEBPACK_IMPORTED_MODULE_1___default.a.component('app-component', __webpack_require__(/*! ./App.vue */ "./resources/js/App.vue")["default"]);
 /**
  * Next, we will create a fresh Vue application instance and attach it to
@@ -85232,6 +86892,12 @@ try {
   __webpack_require__(/*! ../startbootstrap-sb-admin-gh-pages/startbootstrap-sb-admin-gh-pages/js/demo/datatables-demo */ "./resources/startbootstrap-sb-admin-gh-pages/startbootstrap-sb-admin-gh-pages/js/demo/datatables-demo.js");
 
   __webpack_require__(/*! ../startbootstrap-sb-admin-gh-pages/startbootstrap-sb-admin-gh-pages/js/demo/chart-area-demo */ "./resources/startbootstrap-sb-admin-gh-pages/startbootstrap-sb-admin-gh-pages/js/demo/chart-area-demo.js");
+
+  __webpack_require__(/*! ../bootbox/bootbox.min */ "./resources/bootbox/bootbox.min.js");
+
+  __webpack_require__(/*! ../bootbox/bootbox.all.min */ "./resources/bootbox/bootbox.all.min.js");
+
+  __webpack_require__(/*! ../bootbox/bootbox.locales.min */ "./resources/bootbox/bootbox.locales.min.js");
 } catch (e) {}
 /**
  * We'll load the axios HTTP library which allows us to easily issue requests
@@ -85477,25 +87143,49 @@ __webpack_require__.r(__webpack_exports__);
 /* WEBPACK VAR INJECTION */(function(process) {/* harmony import */ var vue__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! vue */ "./node_modules/vue/dist/vue.common.js");
 /* harmony import */ var vue__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(vue__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var vue_router__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! vue-router */ "./node_modules/vue-router/dist/vue-router.esm.js");
-/* harmony import */ var _views_Welcome__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./views/Welcome */ "./resources/js/views/Welcome.vue");
-/* harmony import */ var _views_Categories__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./views/Categories */ "./resources/js/views/Categories.vue");
-
+/* harmony import */ var _views_Home__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./views/Home */ "./resources/js/views/Home.vue");
 
 
 
 vue__WEBPACK_IMPORTED_MODULE_0___default.a.use(vue_router__WEBPACK_IMPORTED_MODULE_1__["default"]);
 var routes = [{
-  path: '/',
-  name: 'welcome',
-  component: _views_Welcome__WEBPACK_IMPORTED_MODULE_2__["default"]
+  path: '/home',
+  component: _views_Home__WEBPACK_IMPORTED_MODULE_2__["default"],
+  children: [{
+    path: '',
+    name: 'dashboard',
+    component: function component() {
+      return __webpack_require__.e(/*! import() */ 2).then(__webpack_require__.bind(null, /*! ./views/Dashboard */ "./resources/js/views/Dashboard.vue"));
+    }
+  }, {
+    path: 'categories',
+    name: 'categories',
+    // route level code-splitting
+    // this generates a separate chunk (about.[hash].js) for this route
+    // which is lazy-loaded when the route is visited.
+    // component: Categories,
+    component: function component() {
+      return Promise.all(/*! import() | categories */[__webpack_require__.e(0), __webpack_require__.e("categories")]).then(__webpack_require__.bind(null, /*! ./views/Categories */ "./resources/js/views/Categories.vue"));
+    }
+  }]
 }, {
-  path: '/categories',
-  name: 'categories',
-  // route level code-splitting
-  // this generates a separate chunk (about.[hash].js) for this route
-  // which is lazy-loaded when the route is visited.
-  component: _views_Categories__WEBPACK_IMPORTED_MODULE_3__["default"] // component: () => import(/* webpackChunkName: "categories" */ './views/Categories')
-
+  path: '/register',
+  name: 'register',
+  component: function component() {
+    return Promise.all(/*! import() */[__webpack_require__.e(0), __webpack_require__.e(1)]).then(__webpack_require__.bind(null, /*! ./views/authentication/Register */ "./resources/js/views/authentication/Register.vue"));
+  }
+}, {
+  path: '/login',
+  name: 'login',
+  component: function component() {
+    return __webpack_require__.e(/*! import() */ 3).then(__webpack_require__.bind(null, /*! ./views/authentication/Login */ "./resources/js/views/authentication/Login.vue"));
+  }
+}, {
+  path: '/reset-password',
+  name: 'reset-password',
+  component: function component() {
+    return __webpack_require__.e(/*! import() */ 4).then(__webpack_require__.bind(null, /*! ./views/authentication/ResetPassword */ "./resources/js/views/authentication/ResetPassword.vue"));
+  }
 }];
 var router = new vue_router__WEBPACK_IMPORTED_MODULE_1__["default"]({
   // mode: 'history',
@@ -85505,68 +87195,6 @@ var router = new vue_router__WEBPACK_IMPORTED_MODULE_1__["default"]({
 });
 /* harmony default export */ __webpack_exports__["default"] = (router);
 /* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(/*! ./../../node_modules/process/browser.js */ "./node_modules/process/browser.js")))
-
-/***/ }),
-
-/***/ "./resources/js/services/category_service.js":
-/*!***************************************************!*\
-  !*** ./resources/js/services/category_service.js ***!
-  \***************************************************/
-/*! exports provided: createCategory, loadCategories, deleteCategory, updateCategory */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "createCategory", function() { return createCategory; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "loadCategories", function() { return loadCategories; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "deleteCategory", function() { return deleteCategory; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "updateCategory", function() { return updateCategory; });
-/* harmony import */ var _http_service__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./http_service */ "./resources/js/services/http_service.js");
-
-function createCategory(data) {
-  return Object(_http_service__WEBPACK_IMPORTED_MODULE_0__["httpFile"])().post('/categories', data);
-}
-function loadCategories() {
-  return Object(_http_service__WEBPACK_IMPORTED_MODULE_0__["http"])().get('/categories');
-}
-function deleteCategory(id) {
-  return Object(_http_service__WEBPACK_IMPORTED_MODULE_0__["http"])()["delete"]("/categories/".concat(id));
-}
-function updateCategory(data, id) {
-  return Object(_http_service__WEBPACK_IMPORTED_MODULE_0__["httpFile"])().post("/categories/".concat(id), data);
-}
-
-/***/ }),
-
-/***/ "./resources/js/services/http_service.js":
-/*!***********************************************!*\
-  !*** ./resources/js/services/http_service.js ***!
-  \***********************************************/
-/*! exports provided: http, httpFile */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "http", function() { return http; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "httpFile", function() { return httpFile; });
-/* harmony import */ var _store__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../store */ "./resources/js/store.js");
-/* harmony import */ var axios__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! axios */ "./node_modules/axios/index.js");
-/* harmony import */ var axios__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(axios__WEBPACK_IMPORTED_MODULE_1__);
-
-
-function http() {
-  return axios__WEBPACK_IMPORTED_MODULE_1___default.a.create({
-    baseURL: _store__WEBPACK_IMPORTED_MODULE_0__["default"].state.apiUrl
-  });
-}
-function httpFile() {
-  return axios__WEBPACK_IMPORTED_MODULE_1___default.a.create({
-    baseURL: _store__WEBPACK_IMPORTED_MODULE_0__["default"].state.apiUrl,
-    headers: {
-      'Content-Type': 'multipart/form-data'
-    }
-  });
-}
 
 /***/ }),
 
@@ -85589,7 +87217,8 @@ vue__WEBPACK_IMPORTED_MODULE_0___default.a.use(vuex__WEBPACK_IMPORTED_MODULE_1__
   //http://49.147.124.131/laravel-vue-sample-one/public
   state: {
     apiUrl: 'http://127.0.0.1:8000/api',
-    serverPath: 'http://127.0.0.1:8000' // apiUrl  :  'http://49.147.124.131/laravel-vue-sample-one/public/api',
+    serverPath: 'http://127.0.0.1:8000',
+    authUrl: 'http://127.0.0.1:8000/api/auth' // apiUrl  :  'http://49.147.124.131/laravel-vue-sample-one/public/api',
     // serverPath : 'http://49.147.124.131/laravel-vue-sample-one/public'
 
   },
@@ -85599,17 +87228,17 @@ vue__WEBPACK_IMPORTED_MODULE_0___default.a.use(vuex__WEBPACK_IMPORTED_MODULE_1__
 
 /***/ }),
 
-/***/ "./resources/js/views/Categories.vue":
-/*!*******************************************!*\
-  !*** ./resources/js/views/Categories.vue ***!
-  \*******************************************/
+/***/ "./resources/js/views/Home.vue":
+/*!*************************************!*\
+  !*** ./resources/js/views/Home.vue ***!
+  \*************************************/
 /*! exports provided: default */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _Categories_vue_vue_type_template_id_53f0967b_scoped_true___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./Categories.vue?vue&type=template&id=53f0967b&scoped=true& */ "./resources/js/views/Categories.vue?vue&type=template&id=53f0967b&scoped=true&");
-/* harmony import */ var _Categories_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./Categories.vue?vue&type=script&lang=js& */ "./resources/js/views/Categories.vue?vue&type=script&lang=js&");
+/* harmony import */ var _Home_vue_vue_type_template_id_63cd6604_scoped_true___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./Home.vue?vue&type=template&id=63cd6604&scoped=true& */ "./resources/js/views/Home.vue?vue&type=template&id=63cd6604&scoped=true&");
+/* harmony import */ var _Home_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./Home.vue?vue&type=script&lang=js& */ "./resources/js/views/Home.vue?vue&type=script&lang=js&");
 /* empty/unused harmony star reexport *//* harmony import */ var _node_modules_vue_loader_lib_runtime_componentNormalizer_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../../node_modules/vue-loader/lib/runtime/componentNormalizer.js */ "./node_modules/vue-loader/lib/runtime/componentNormalizer.js");
 
 
@@ -85619,119 +87248,50 @@ __webpack_require__.r(__webpack_exports__);
 /* normalize component */
 
 var component = Object(_node_modules_vue_loader_lib_runtime_componentNormalizer_js__WEBPACK_IMPORTED_MODULE_2__["default"])(
-  _Categories_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_1__["default"],
-  _Categories_vue_vue_type_template_id_53f0967b_scoped_true___WEBPACK_IMPORTED_MODULE_0__["render"],
-  _Categories_vue_vue_type_template_id_53f0967b_scoped_true___WEBPACK_IMPORTED_MODULE_0__["staticRenderFns"],
+  _Home_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_1__["default"],
+  _Home_vue_vue_type_template_id_63cd6604_scoped_true___WEBPACK_IMPORTED_MODULE_0__["render"],
+  _Home_vue_vue_type_template_id_63cd6604_scoped_true___WEBPACK_IMPORTED_MODULE_0__["staticRenderFns"],
   false,
   null,
-  "53f0967b",
+  "63cd6604",
   null
   
 )
 
 /* hot reload */
 if (false) { var api; }
-component.options.__file = "resources/js/views/Categories.vue"
+component.options.__file = "resources/js/views/Home.vue"
 /* harmony default export */ __webpack_exports__["default"] = (component.exports);
 
 /***/ }),
 
-/***/ "./resources/js/views/Categories.vue?vue&type=script&lang=js&":
-/*!********************************************************************!*\
-  !*** ./resources/js/views/Categories.vue?vue&type=script&lang=js& ***!
-  \********************************************************************/
+/***/ "./resources/js/views/Home.vue?vue&type=script&lang=js&":
+/*!**************************************************************!*\
+  !*** ./resources/js/views/Home.vue?vue&type=script&lang=js& ***!
+  \**************************************************************/
 /*! exports provided: default */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _node_modules_babel_loader_lib_index_js_ref_4_0_node_modules_vue_loader_lib_index_js_vue_loader_options_Categories_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../node_modules/babel-loader/lib??ref--4-0!../../../node_modules/vue-loader/lib??vue-loader-options!./Categories.vue?vue&type=script&lang=js& */ "./node_modules/babel-loader/lib/index.js?!./node_modules/vue-loader/lib/index.js?!./resources/js/views/Categories.vue?vue&type=script&lang=js&");
-/* empty/unused harmony star reexport */ /* harmony default export */ __webpack_exports__["default"] = (_node_modules_babel_loader_lib_index_js_ref_4_0_node_modules_vue_loader_lib_index_js_vue_loader_options_Categories_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_0__["default"]); 
+/* harmony import */ var _node_modules_babel_loader_lib_index_js_ref_4_0_node_modules_vue_loader_lib_index_js_vue_loader_options_Home_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../node_modules/babel-loader/lib??ref--4-0!../../../node_modules/vue-loader/lib??vue-loader-options!./Home.vue?vue&type=script&lang=js& */ "./node_modules/babel-loader/lib/index.js?!./node_modules/vue-loader/lib/index.js?!./resources/js/views/Home.vue?vue&type=script&lang=js&");
+/* empty/unused harmony star reexport */ /* harmony default export */ __webpack_exports__["default"] = (_node_modules_babel_loader_lib_index_js_ref_4_0_node_modules_vue_loader_lib_index_js_vue_loader_options_Home_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_0__["default"]); 
 
 /***/ }),
 
-/***/ "./resources/js/views/Categories.vue?vue&type=template&id=53f0967b&scoped=true&":
-/*!**************************************************************************************!*\
-  !*** ./resources/js/views/Categories.vue?vue&type=template&id=53f0967b&scoped=true& ***!
-  \**************************************************************************************/
+/***/ "./resources/js/views/Home.vue?vue&type=template&id=63cd6604&scoped=true&":
+/*!********************************************************************************!*\
+  !*** ./resources/js/views/Home.vue?vue&type=template&id=63cd6604&scoped=true& ***!
+  \********************************************************************************/
 /*! exports provided: render, staticRenderFns */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _node_modules_vue_loader_lib_loaders_templateLoader_js_vue_loader_options_node_modules_vue_loader_lib_index_js_vue_loader_options_Categories_vue_vue_type_template_id_53f0967b_scoped_true___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!../../../node_modules/vue-loader/lib??vue-loader-options!./Categories.vue?vue&type=template&id=53f0967b&scoped=true& */ "./node_modules/vue-loader/lib/loaders/templateLoader.js?!./node_modules/vue-loader/lib/index.js?!./resources/js/views/Categories.vue?vue&type=template&id=53f0967b&scoped=true&");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "render", function() { return _node_modules_vue_loader_lib_loaders_templateLoader_js_vue_loader_options_node_modules_vue_loader_lib_index_js_vue_loader_options_Categories_vue_vue_type_template_id_53f0967b_scoped_true___WEBPACK_IMPORTED_MODULE_0__["render"]; });
+/* harmony import */ var _node_modules_vue_loader_lib_loaders_templateLoader_js_vue_loader_options_node_modules_vue_loader_lib_index_js_vue_loader_options_Home_vue_vue_type_template_id_63cd6604_scoped_true___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!../../../node_modules/vue-loader/lib??vue-loader-options!./Home.vue?vue&type=template&id=63cd6604&scoped=true& */ "./node_modules/vue-loader/lib/loaders/templateLoader.js?!./node_modules/vue-loader/lib/index.js?!./resources/js/views/Home.vue?vue&type=template&id=63cd6604&scoped=true&");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "render", function() { return _node_modules_vue_loader_lib_loaders_templateLoader_js_vue_loader_options_node_modules_vue_loader_lib_index_js_vue_loader_options_Home_vue_vue_type_template_id_63cd6604_scoped_true___WEBPACK_IMPORTED_MODULE_0__["render"]; });
 
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "staticRenderFns", function() { return _node_modules_vue_loader_lib_loaders_templateLoader_js_vue_loader_options_node_modules_vue_loader_lib_index_js_vue_loader_options_Categories_vue_vue_type_template_id_53f0967b_scoped_true___WEBPACK_IMPORTED_MODULE_0__["staticRenderFns"]; });
-
-
-
-/***/ }),
-
-/***/ "./resources/js/views/Welcome.vue":
-/*!****************************************!*\
-  !*** ./resources/js/views/Welcome.vue ***!
-  \****************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _Welcome_vue_vue_type_template_id_1ae8ae93_scoped_true___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./Welcome.vue?vue&type=template&id=1ae8ae93&scoped=true& */ "./resources/js/views/Welcome.vue?vue&type=template&id=1ae8ae93&scoped=true&");
-/* harmony import */ var _Welcome_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./Welcome.vue?vue&type=script&lang=js& */ "./resources/js/views/Welcome.vue?vue&type=script&lang=js&");
-/* empty/unused harmony star reexport *//* harmony import */ var _node_modules_vue_loader_lib_runtime_componentNormalizer_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../../node_modules/vue-loader/lib/runtime/componentNormalizer.js */ "./node_modules/vue-loader/lib/runtime/componentNormalizer.js");
-
-
-
-
-
-/* normalize component */
-
-var component = Object(_node_modules_vue_loader_lib_runtime_componentNormalizer_js__WEBPACK_IMPORTED_MODULE_2__["default"])(
-  _Welcome_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_1__["default"],
-  _Welcome_vue_vue_type_template_id_1ae8ae93_scoped_true___WEBPACK_IMPORTED_MODULE_0__["render"],
-  _Welcome_vue_vue_type_template_id_1ae8ae93_scoped_true___WEBPACK_IMPORTED_MODULE_0__["staticRenderFns"],
-  false,
-  null,
-  "1ae8ae93",
-  null
-  
-)
-
-/* hot reload */
-if (false) { var api; }
-component.options.__file = "resources/js/views/Welcome.vue"
-/* harmony default export */ __webpack_exports__["default"] = (component.exports);
-
-/***/ }),
-
-/***/ "./resources/js/views/Welcome.vue?vue&type=script&lang=js&":
-/*!*****************************************************************!*\
-  !*** ./resources/js/views/Welcome.vue?vue&type=script&lang=js& ***!
-  \*****************************************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _node_modules_babel_loader_lib_index_js_ref_4_0_node_modules_vue_loader_lib_index_js_vue_loader_options_Welcome_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../node_modules/babel-loader/lib??ref--4-0!../../../node_modules/vue-loader/lib??vue-loader-options!./Welcome.vue?vue&type=script&lang=js& */ "./node_modules/babel-loader/lib/index.js?!./node_modules/vue-loader/lib/index.js?!./resources/js/views/Welcome.vue?vue&type=script&lang=js&");
-/* empty/unused harmony star reexport */ /* harmony default export */ __webpack_exports__["default"] = (_node_modules_babel_loader_lib_index_js_ref_4_0_node_modules_vue_loader_lib_index_js_vue_loader_options_Welcome_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_0__["default"]); 
-
-/***/ }),
-
-/***/ "./resources/js/views/Welcome.vue?vue&type=template&id=1ae8ae93&scoped=true&":
-/*!***********************************************************************************!*\
-  !*** ./resources/js/views/Welcome.vue?vue&type=template&id=1ae8ae93&scoped=true& ***!
-  \***********************************************************************************/
-/*! exports provided: render, staticRenderFns */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _node_modules_vue_loader_lib_loaders_templateLoader_js_vue_loader_options_node_modules_vue_loader_lib_index_js_vue_loader_options_Welcome_vue_vue_type_template_id_1ae8ae93_scoped_true___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!../../../node_modules/vue-loader/lib??vue-loader-options!./Welcome.vue?vue&type=template&id=1ae8ae93&scoped=true& */ "./node_modules/vue-loader/lib/loaders/templateLoader.js?!./node_modules/vue-loader/lib/index.js?!./resources/js/views/Welcome.vue?vue&type=template&id=1ae8ae93&scoped=true&");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "render", function() { return _node_modules_vue_loader_lib_loaders_templateLoader_js_vue_loader_options_node_modules_vue_loader_lib_index_js_vue_loader_options_Welcome_vue_vue_type_template_id_1ae8ae93_scoped_true___WEBPACK_IMPORTED_MODULE_0__["render"]; });
-
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "staticRenderFns", function() { return _node_modules_vue_loader_lib_loaders_templateLoader_js_vue_loader_options_node_modules_vue_loader_lib_index_js_vue_loader_options_Welcome_vue_vue_type_template_id_1ae8ae93_scoped_true___WEBPACK_IMPORTED_MODULE_0__["staticRenderFns"]; });
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "staticRenderFns", function() { return _node_modules_vue_loader_lib_loaders_templateLoader_js_vue_loader_options_node_modules_vue_loader_lib_index_js_vue_loader_options_Home_vue_vue_type_template_id_63cd6604_scoped_true___WEBPACK_IMPORTED_MODULE_0__["staticRenderFns"]; });
 
 
 
